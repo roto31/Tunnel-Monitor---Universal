@@ -108,7 +108,7 @@ jobs:
           } >> "${GITHUB_OUTPUT}"
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@65c88fcd6040d0c04ac32b0487bee3dd4c059fae # v4.6.0
+        uses: actions/upload-artifact@v4
         with:
           name: tunnel-monitor-macos-${{ steps.ver.outputs.version }}
           path: |
@@ -118,7 +118,7 @@ jobs:
 
       - name: Create GitHub Release
         if: github.ref_type == 'tag'
-        uses: softprops/action-gh-release@e7a2fe0680d5a15519aedd8d8ccb62eaa268a500 # v2.9.0
+        uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           files: |
