@@ -25,6 +25,20 @@
         "app-icon": "liquid-glass-v1",
         "assets-car": "liquid-glass-v1"
       }
+    },
+    {
+      "sequence": 3,
+      "version": "2.0.0",
+      "tag": "v2.0.0",
+      "folder": "03-v2.0.0",
+      "released": "2026-05-31",
+      "dataRevision": {
+        "wizard-fields": "gateway-v2",
+        "app-icon": "liquid-glass-v1",
+        "assets-car": "liquid-glass-v1",
+        "core-engine": "2.0.0"
+      },
+      "notes": "tunnel-monitor-core v2 universal distribution; gateway_dedup state.json schema; GATEWAY_* config aliases."
     }
   ]
 }

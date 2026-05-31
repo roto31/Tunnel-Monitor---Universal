@@ -38,6 +38,11 @@ cd adapters/generic-linux-gateway
 sudo bash install.sh
 ```
 
+## Versioning
+
+- Core: `vendor/core/VERSION` (pinned in [`bundle-manifest.json`](bundle-manifest.json) as `coreVersion`)
+- Consumer artifact: `artifactVersion` in bundle manifest
+
 ## Releases (macOS GUI + pkg)
 
 Download builds from **[GitHub Releases](https://github.com/roto31/Tunnel-Monitor---Universal/releases)**.
@@ -48,11 +53,6 @@ Download builds from **[GitHub Releases](https://github.com/roto31/Tunnel-Monito
 | `Tunnel-Monitor-<version>-macOS.app.zip` | Menu bar app only |
 
 See [`RELEASES.md`](RELEASES.md) and [`CHANGELOG.md`](CHANGELOG.md). Maintainer guide: [`RELEASING.md`](RELEASING.md).
-
-## Versioning
-
-- Core: `vendor/core/VERSION` (pinned in [`bundle-manifest.json`](bundle-manifest.json) as `coreVersion`)
-- Consumer artifact: `artifactVersion` in bundle manifest
 
 ## Tests
 
