@@ -40,27 +40,44 @@ RUNBOOKS: dict[Diagnosis, tuple[str, list[str]]] = {
     ),
     Diagnosis.OUR_INTERNET_DOWN: (
         "Local internet probe failed before tunnel evaluation.",
-        ["Restore local connectivity.", "Re-run uvpn check after recovery."],
+        [
+            "Restore local connectivity (see docs/troubleshooting/universal.md).",
+            "Re-run uvpn check after recovery.",
+        ],
     ),
     Diagnosis.TUNNEL_DOWN: (
         "Remote WAN and DNS OK but tunnel LAN unreachable.",
-        ["Inspect VPN adapter status.", "Verify routes and firewall.", "Review VPN logs."],
+        [
+            "Open docs/troubleshooting/ for your vpn_type — TUNNEL_DOWN flowchart.",
+            "Inspect VPN adapter status (uvpn check / state.json).",
+            "Verify routes and firewall; review VPN logs.",
+        ],
     ),
     Diagnosis.REMOTE_INTERNET_DOWN: (
         "Remote public IP unreachable from this host.",
-        ["Confirm remote site ISP.", "ICMP may be filtered — interpret with caution."],
+        [
+            "Confirm remote site ISP or gateway.",
+            "ICMP may be filtered — interpret with vendor CLI.",
+        ],
     ),
     Diagnosis.DDNS_DRIFT: (
         "DDNS resolution does not match configured remote WAN IP.",
-        ["Update DDNS record or config remote_wan_ip."],
+        ["dig remote_ddns; update DDNS A record or remote_wan_ip in config."],
     ),
     Diagnosis.VPN_DAEMON_DOWN: (
         "VPN client/daemon not connected per adapter probe.",
-        ["Start VPN service or client.", "Check adapter-specific logs."],
+        [
+            "See docs/troubleshooting/<platform>.md — VPN_DAEMON_DOWN branch.",
+            "Start VPN client; run uvpn preflight for binary path.",
+        ],
     ),
     Diagnosis.VPN_NEGOTIATION_FAILED: (
         "VPN reports connected but tunnel probe failed — routing or policy issue.",
-        ["Compare routes with ping target.", "Bounce VPN session."],
+        [
+            "See platform troubleshooting — VPN_NEGOTIATION_FAILED flowchart.",
+            "Check split tunnel; pick remote_lan_ip inside allowed subnets.",
+            "Disconnect and reconnect VPN session.",
+        ],
     ),
     Diagnosis.UNSUPPORTED: (
         "VPN type unknown or adapter unavailable on this host.",

@@ -222,6 +222,12 @@ Manifest: [manifests/wireguard.yaml](manifests/wireguard.yaml)
 
 ---
 
+## Full troubleshooting runbook
+
+[troubleshooting/wireguard.md](../troubleshooting/wireguard.md) · [universal.md](../troubleshooting/universal.md)
+
+---
+
 ## Related
 
 - [research-vpn-platforms.md](../architecture/research-vpn-platforms.md)

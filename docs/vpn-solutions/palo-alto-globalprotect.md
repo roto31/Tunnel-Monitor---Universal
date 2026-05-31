@@ -274,6 +274,12 @@ Manifest: [manifests/palo-alto-globalprotect.yaml](manifests/palo-alto-globalpro
 
 ---
 
+## Full troubleshooting runbook
+
+[troubleshooting/palo-alto-globalprotect.md](../troubleshooting/palo-alto-globalprotect.md) · [universal.md](../troubleshooting/universal.md)
+
+---
+
 ## Related
 
 - [adapter-version-matrix.md](../architecture/adapter-version-matrix.md)

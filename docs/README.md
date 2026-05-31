@@ -23,7 +23,7 @@
 - [cli-usage.md](platform-linux/cli-usage.md)
 - [terminal-app.md](platform-linux/terminal-app.md)
 - [gui-setup.md](platform-linux/gui-setup.md)
-- [troubleshooting.md](platform-linux/troubleshooting.md)
+- [troubleshooting.md](troubleshooting.md) — hub + [per-platform flowcharts](troubleshooting/README.md)
 
 ## macOS
 

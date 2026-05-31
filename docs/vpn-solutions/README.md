@@ -25,3 +25,5 @@ python3 scripts/sync-wiki-vpn-guides.py
 ```
 
 Commit both the repo guide and `.wiki-publish/` (or push the wiki remote).
+
+**Troubleshooting:** Full runbooks with Mermaid flowcharts — [../troubleshooting/README.md](../troubleshooting/README.md). Wiki: `python3 scripts/sync-wiki-troubleshooting.py`.

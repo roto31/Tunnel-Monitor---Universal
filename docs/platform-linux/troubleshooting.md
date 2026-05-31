@@ -1,77 +1,47 @@
-# Troubleshooting
+# Linux troubleshooting
 
-## Config and paths
+Platform install and GUI notes remain here; **full uvpn runbooks** (per diagnosis + per VPN platform with flowcharts) live in the troubleshooting hub.
+
+## Start here
+
+| Topic | Document |
+|-------|----------|
+| Universal diagnoses | [troubleshooting/universal.md](../troubleshooting/universal.md) |
+| Index + platform flows | [troubleshooting/README.md](../troubleshooting/README.md) |
+| Top-level hub | [troubleshooting.md](../troubleshooting.md) |
+
+## Paths
 
 | Item | Location |
 |------|----------|
-| Config | `~/.config/uvpn/config.json` |
+| Config | `~/.config/uvpn/config.json` or `/etc/uvpn/config.json` |
 | State | `~/.config/uvpn/state.json` |
-| Logs | stderr from `uvpn check`; no daemon log file by default |
+| Scheduling | [deploy/scheduling.md](../deploy/scheduling.md) |
 
-Run `uvpn preflight` before first check — validates JSON, required fields, and tool availability.
+## Quick commands
 
-## Common diagnoses
+```bash
+uvpn preflight
+uvpn check
+uvpn explain
+jq '{diagnosis,traffic_light,failure_count,adapter}' ~/.config/uvpn/state.json
+```
 
-| Diagnosis | Meaning | First steps |
-|-----------|---------|-------------|
-| `HEALTHY` | Tunnel and probes OK | None |
-| `TUNNEL_DOWN` | Remote LAN unreachable | Check VPN daemon, routing, firewall |
-| `REMOTE_INTERNET_DOWN` | LAN OK, remote WAN fail | Remote site ISP or gateway issue |
-| `OUR_INTERNET_DOWN` | Cannot reach 1.1.1.1 | Local ISP or default route |
-| `DDNS_DRIFT` | DDNS resolves ≠ configured WAN | Update `remote_wan_ip` or fix DDNS |
-| `VPN_DAEMON_DOWN` | Adapter reports daemon stopped | Restart OpenVPN/WireGuard/strongSwan/Cisco client |
-| `VPN_NEGOTIATION_FAILED` | Session not established | Check credentials, phase1/2, peer reachability |
-| `UNSUPPORTED_VPN_TYPE` | Unknown `vpn_type` | Use `generic` or add adapter |
+## Linux-specific
 
-Run `uvpn explain` for runbook steps matching the last diagnosis.
+### GTK GUI unavailable
 
-## Adapter-specific
+Install `python3-gi` and `gir1.2-gtk-4.0`, or use `uvpn-tui` — [gui-setup.md](gui-setup.md).
 
-### OpenVPN
+### Ping permissions
 
-- Enable management interface: `management localhost 7505` in server/client config.
-- Set `openvpn_management_host` / `openvpn_management_port` in config.
+Some distributions require `cap_net_raw` on the Python binary or running checks as root for ICMP.
 
-See [OpenVPN guide](../vpn-solutions/openvpn.md).
+### systemd
 
-### WireGuard
+```bash
+systemctl status uvpn.timer
+journalctl -u uvpn.service -n 40
+```
 
-- Requires `wg` in PATH and correct `wireguard_interface` (e.g. `wg0`).
-
-See [WireGuard guide](../vpn-solutions/wireguard.md).
-
-### IPsec / IKEv2
-
-- strongSwan: `swanctl --list-sas` must show active CHILD_SA.
-- Legacy starter: `ipsec statusall`.
-
-See [IPsec / IKEv2 guide](../vpn-solutions/ipsec-ikev2.md).
-
-### Cisco AnyConnect
-
-- Requires `vpn` CLI from Cisco Secure Client.
-- Run as user with active VPN profile.
-
-See [Cisco AnyConnect guide](../vpn-solutions/cisco-anyconnect.md).
-
-## GUI issues
-
-### Linux GTK unavailable
-
-Install `python3-gi` and `gir1.2-gtk-4.0`, or use `bash scripts/uvpn-tui`.
-
-### macOS menu bar shows stale data
-
-- Run `uvpn check` manually or click **Refresh** in the menu.
-- State older than 12 minutes may indicate no scheduled checks — add launchd timer (see [macOS installation](../platform-macos/installation.md) or [scheduling](../deploy/scheduling.md)).
-
-## Permissions
-
-- ICMP ping may require `cap_net_raw` on Linux or root for some distros.
-- Cisco `vpn` CLI typically requires the logged-in user's keychain/session.
-
-## Getting help
-
-1. `uvpn preflight`
-2. `uvpn check -v` (if verbose flag available) or inspect `state.json`
-3. Open an issue with redacted `config.json` (no secrets) and last diagnosis
+See your platform’s guide under [troubleshooting/README.md](../troubleshooting/README.md) for VPN-specific flowcharts.

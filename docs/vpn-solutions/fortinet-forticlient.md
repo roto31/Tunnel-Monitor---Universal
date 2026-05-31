@@ -276,6 +276,12 @@ Manifest: [manifests/fortinet-forticlient.yaml](manifests/fortinet-forticlient.y
 
 ---
 
+## Full troubleshooting runbook
+
+[troubleshooting/fortinet-forticlient.md](../troubleshooting/fortinet-forticlient.md) · [universal.md](../troubleshooting/universal.md)
+
+---
+
 ## Related
 
 - [adapter-version-matrix.md](../architecture/adapter-version-matrix.md)

@@ -370,6 +370,12 @@ Manifest: [manifests/pulse-ivanti.yaml](manifests/pulse-ivanti.yaml)
 
 ---
 
+## Full troubleshooting runbook
+
+Flowcharts and step-by-step workflows: [troubleshooting/pulse-ivanti.md](../troubleshooting/pulse-ivanti.md) · [universal.md](../troubleshooting/universal.md)
+
+---
+
 ## Related
 
 - [pulse-cli-contract.md](../architecture/pulse-cli-contract.md)

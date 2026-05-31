@@ -225,6 +225,12 @@ Manifest: [manifests/cisco-anyconnect.yaml](manifests/cisco-anyconnect.yaml)
 
 ---
 
+## Full troubleshooting runbook
+
+[troubleshooting/cisco-anyconnect.md](../troubleshooting/cisco-anyconnect.md) · [universal.md](../troubleshooting/universal.md)
+
+---
+
 ## Related
 
 - [plugin-adapters.md](../architecture/plugin-adapters.md)

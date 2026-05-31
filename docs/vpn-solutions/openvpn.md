@@ -240,6 +240,12 @@ Manifest: [manifests/openvpn.yaml](manifests/openvpn.yaml)
 
 ---
 
+## Full troubleshooting runbook
+
+[troubleshooting/openvpn.md](../troubleshooting/openvpn.md) · [universal.md](../troubleshooting/universal.md)
+
+---
+
 ## Related
 
 - [plugin-adapters.md](../architecture/plugin-adapters.md)

@@ -240,6 +240,12 @@ Manifest: [manifests/ipsec-ikev2.yaml](manifests/ipsec-ikev2.yaml)
 
 ---
 
+## Full troubleshooting runbook
+
+[troubleshooting/ipsec-ikev2.md](../troubleshooting/ipsec-ikev2.md) · [universal.md](../troubleshooting/universal.md)
+
+---
+
 ## Related
 
 - [research-vpn-platforms.md](../architecture/research-vpn-platforms.md)
