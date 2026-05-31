@@ -1,22 +1,5 @@
 {
   "artifactVersion": "2.0.0",
   "coreVersion": "2.0.0",
-  "dataRevision": "v2-core-extract-001",
-  "categories": {
-    "private": {
-      "versionFile": "Private/VERSION",
-      "manifest": "Private/datasets/bundle-manifest.json",
-      "releasesDir": "Private/builds/releases"
-    },
-    "public": {
-      "versionFile": "Public/VERSION",
-      "manifest": "Public/datasets/bundle-manifest.json",
-      "releasesDir": "Public/builds/releases"
-    },
-    "universal": {
-      "versionFile": "Universal/VERSION",
-      "manifest": "Universal/datasets/bundle-manifest.json",
-      "releasesDir": "Universal/builds/releases"
-    }
-  }
+  "dataRevision": "v2-core-extract-001"
 }

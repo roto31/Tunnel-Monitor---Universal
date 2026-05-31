@@ -1,22 +1,15 @@
 # macOS
 .DS_Store
 
-# Private operator docs (real topology, incidents, cursor prompts, private wiki)
-Private/docs/
-
-# Legacy root paths (must not reappear)
+# Private / production operator docs (not for public repos)
+internal/
 private-docs-repo/
 private-docs-wiki/
 tunnel-monitor-cursor-prompt/
-.wiki-publish/
-.wiki-uni-tunnel-monitor/
 
-# Legacy mirrors (canonical: Public/mac/payload, Universal/adapters/, Private/payload/)
+# Legacy mirrors at repo root only (canonical: Public/mac/payload, adapters/)
 /opt/
 /payload/
-/app/
-/datasets/
-/Library/
 
 # Secrets
 **/config.env
@@ -24,47 +17,31 @@ tunnel-monitor-cursor-prompt/
 
 # Nested clone metadata (Public is part of this monorepo)
 Public/.git/
-Public/wiki/.git/
-Universal/docs/wiki/.git/
 
 # Swift / SPM build artifacts
-Private/app/TunnelMonitor/.build/
-Private/app/TunnelMonitor/.swiftpm/
-Private/app/TunnelMonitor/Package.resolved
+app/TunnelMonitor/.build/
+app/TunnelMonitor/.swiftpm/
+app/TunnelMonitor/Package.resolved
 
-# Build outputs (Private)
-Private/build/dist/
-Private/build/dist-public/
-Private/build/releases/*/
-!Private/build/releases/README.md
-Private/build/.stage/
-Private/build/.scripts/
-Private/build/.component.pkg
-Private/build/.distribution.rendered.xml
-Private/build/icon-compile/
-Private/build/icon-raster/
-Private/build/icon-test/
-Private/build/xcode-build/
-
-# Build outputs (Public)
-Public/build/dist/
-Public/build/dist-public/
-Public/builds/releases/*/
-!Public/builds/releases/README.md
-Public/build/.stage/
-Public/build/.scripts/
-Public/build/.component.pkg
-Public/build/.distribution.rendered.xml
+# Build outputs
+build/dist/
+build/dist-public/
+build/releases/*/
+!build/releases/README.md
+build/.stage/
+build/.scripts/
+build/.component.pkg
+build/.distribution.rendered.xml
+build/icon-compile/
+build/icon-raster/
+build/icon-test/
+build/xcode-build/
 
 # Public app SPM artifacts
 Public/mac/app/TunnelMonitor/.build/
 Public/mac/app/TunnelMonitor/.swiftpm/
 Public/mac/app/TunnelMonitor/Package.resolved
 Public/mac/app/TunnelMonitorXcode/
-
-# Universal release artifacts (when populated)
-Universal/builds/releases/*/
-!Universal/builds/releases/README.md
 
 # Editor noise
 *.swp

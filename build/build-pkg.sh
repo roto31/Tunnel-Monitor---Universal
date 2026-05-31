@@ -31,25 +31,8 @@ SCRIPTS_SRC="${BUILD_DIR}/scripts"
 SCRIPTS_STAGE="${BUILD_DIR}/.scripts"
 RESOURCES_DIR="${BUILD_DIR}/Resources"
 
-if [[ -d "${ROOT_DIR}/mac/payload" ]]; then
-    PAYLOAD_DIR="${ROOT_DIR}/mac/payload"
-    LAUNCHDAEMON_PLIST="com.example.tunnel-monitor.plist"
-    SSH_STATE_SCRIPT="ssh-router-state.sh"
-    MAINT_SCRIPTS_DIR="${ROOT_DIR}/mac"
-elif [[ -d "${ROOT_DIR}/payload" ]]; then
-    PAYLOAD_DIR="${ROOT_DIR}/payload"
-    LAUNCHDAEMON_PLIST="com.ruter.tunnel-monitor.plist"
-    SSH_STATE_SCRIPT="ssh-udr7-state.sh"
-    MAINT_SCRIPTS_DIR="${ROOT_DIR}"
-else
-    red "ERROR: no payload directory (expected mac/payload or payload/)"
-    exit 2
-fi
-
+PAYLOAD_DIR="${ROOT_DIR}/payload"
 APP_BUNDLE="${DIST_DIR}/Tunnel Monitor.app"
-if [[ ! -d "${APP_BUNDLE}" && -d "${BUILD_DIR}/dist-public/Tunnel Monitor.app" ]]; then
-    APP_BUNDLE="${BUILD_DIR}/dist-public/Tunnel Monitor.app"
-fi
 
 VERSION="${VERSION:-1.0.0}"
 PKG_IDENTIFIER="com.tunnel.monitor.pkg"
@@ -134,32 +117,28 @@ mkdir -p "${STAGE_DIR}/Library/Application Support/Tunnel Monitor/scripts"
 ditto "${APP_BUNDLE}" "${STAGE_DIR}/Applications/Tunnel Monitor.app"
 
 # Scripts → /opt/tunnel-monitor (everything except config.env)
-for f in monitor.sh notify.sh send-email.sh "${SSH_STATE_SCRIPT}" ssh-gateway-state.sh tunnel-check config.env.template; do
-    src="${PAYLOAD_DIR}/opt/tunnel-monitor/${f}"
+MAC_PAYLOAD="${ROOT_DIR}/Public/mac/payload/opt/tunnel-monitor"
+for f in monitor.sh notify.sh send-email.sh ssh-router-state.sh ssh-gateway-state.sh tunnel-check config.env.template; do
+    src="${MAC_PAYLOAD}/${f}"
     if [[ ! -f "${src}" ]]; then
-        [[ "${f}" == "ssh-gateway-state.sh" ]] && continue
-        red "ERROR: payload missing: ${src}"
+        src="${PAYLOAD_DIR}/opt/tunnel-monitor/${f}"
+    fi
+    if [[ ! -f "${src}" ]]; then
+        red "ERROR: payload missing: ${f}"
         exit 1
     fi
     cp "${src}" "${STAGE_DIR}/opt/tunnel-monitor/${f}"
 done
 
-MONOREPO_ROOT="$(cd "${ROOT_DIR}/.." && pwd)"
-if [[ -f "${MONOREPO_ROOT}/scripts/install-core.sh" ]]; then
-    # shellcheck source=../scripts/install-core.sh
-    source "${MONOREPO_ROOT}/scripts/install-core.sh"
-    install_tunnel_monitor_core "${STAGE_DIR}/opt/tunnel-monitor" "${MONOREPO_ROOT}"
-    install_lan_adapter "${STAGE_DIR}/opt/tunnel-monitor" "${MONOREPO_ROOT}/adapters/lan-client-macos"
-fi
-
-if [[ -d "${PAYLOAD_DIR}/opt/tunnel-monitor/adapter" ]]; then
-    mkdir -p "${STAGE_DIR}/opt/tunnel-monitor/adapter"
-    cp -R "${PAYLOAD_DIR}/opt/tunnel-monitor/adapter/." "${STAGE_DIR}/opt/tunnel-monitor/adapter/"
-fi
+# tunnel-monitor-core engine
+# shellcheck source=scripts/install-core.sh
+source "${ROOT_DIR}/scripts/install-core.sh"
+install_tunnel_monitor_core "${STAGE_DIR}/opt/tunnel-monitor" "${ROOT_DIR}"
+install_lan_adapter "${STAGE_DIR}/opt/tunnel-monitor" "${ROOT_DIR}/adapters/lan-client-macos"
 
 # LaunchDaemon plist
-cp "${PAYLOAD_DIR}/LaunchDaemons/${LAUNCHDAEMON_PLIST}" \
-   "${STAGE_DIR}/Library/LaunchDaemons/${LAUNCHDAEMON_PLIST}"
+cp "${PAYLOAD_DIR}/LaunchDaemons/com.ruter.tunnel-monitor.plist" \
+   "${STAGE_DIR}/Library/LaunchDaemons/com.ruter.tunnel-monitor.plist"
 
 # SwiftBar plugin (deployed to user dir by postinstall)
 cp "${PAYLOAD_DIR}/SwiftBar/tunnel-monitor.30s.sh" \
@@ -167,8 +146,8 @@ cp "${PAYLOAD_DIR}/SwiftBar/tunnel-monitor.30s.sh" \
 
 # Maintenance scripts for power users
 for f in install.sh uninstall.sh verify.sh; do
-    if [[ -f "${MAINT_SCRIPTS_DIR}/${f}" ]]; then
-        cp "${MAINT_SCRIPTS_DIR}/${f}" "${STAGE_DIR}/Library/Application Support/Tunnel Monitor/scripts/${f}"
+    if [[ -f "${ROOT_DIR}/${f}" ]]; then
+        cp "${ROOT_DIR}/${f}" "${STAGE_DIR}/Library/Application Support/Tunnel Monitor/scripts/${f}"
     fi
 done
 

@@ -183,9 +183,9 @@ fi
 # tunnel-monitor-core engine + LAN adapter
 MONOREPO_ROOT="$(cd "${REPO_DIR}/../.." && pwd)"
 # shellcheck source=../../scripts/install-core.sh
-source "${MONOREPO_ROOT}/Universal/scripts/install-core.sh"
+source "${MONOREPO_ROOT}/scripts/install-core.sh"
 install_tunnel_monitor_core "${INSTALL_DIR}" "${MONOREPO_ROOT}"
-install_lan_adapter "${INSTALL_DIR}" "${MONOREPO_ROOT}/Universal/adapters/lan-client-macos"
+install_lan_adapter "${INSTALL_DIR}" "${MONOREPO_ROOT}/adapters/lan-client-macos"
 green "Installed tunnel-monitor-core $(cat "${INSTALL_DIR}/core.version" 2>/dev/null || echo unknown)"
 
 # Always install the template at 0644 (no secrets in it).

@@ -1,10 +1,10 @@
 #!/bin/bash
-# Archive built artifacts into builds/releases/<NN-vX.Y.Z>/ per datasets/bundle-manifest.json
+# Archive built artifacts into build/releases/<NN-vX.Y.Z>/ per datasets/bundle-manifest.json
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MANIFEST="${ROOT_DIR}/datasets/bundle-manifest.json"
-RELEASES_DIR="${ROOT_DIR}/builds/releases"
+RELEASES_DIR="${ROOT_DIR}/build/releases"
 DIST_DIR="${ROOT_DIR}/build/dist"
 
 red()   { printf '\033[1;31m%s\033[0m\n' "$*" >&2; }
@@ -13,7 +13,7 @@ yellow(){ printf '\033[1;33m%s\033[0m\n' "$*"; }
 
 show_help() {
     cat <<'EOF'
-archive-release.sh — copy dist artifacts into builds/releases/<NN-vVERSION>/
+archive-release.sh — copy dist artifacts into build/releases/<NN-vVERSION>/
 
 USAGE
     bash build/archive-release.sh --version 1.1.0

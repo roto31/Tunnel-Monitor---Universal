@@ -126,16 +126,6 @@ enum Actions {
         return "Opening log tail in Terminal."
     }
 
-    static func openExplainInTerminal() -> String {
-        openInTerminal("\(tunnelCheckBin) --explain")
-        return "Opening diagnosis runbook in Terminal."
-    }
-
-    static func openPreflightInTerminal() -> String {
-        openInTerminal("\(tunnelCheckBin) --preflight")
-        return "Opening preflight checks in Terminal."
-    }
-
     @MainActor
     static func copySSHPubkeyCommand() -> String {
         // bash -lc uses double quotes so ${...} expands after sourcing config.env.

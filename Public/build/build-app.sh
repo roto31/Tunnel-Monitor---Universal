@@ -203,7 +203,7 @@ else
 fi
 
 if [[ "${ARCHIVE_RELEASE:-1}" == "1" ]] && [[ -x "${ROOT_DIR}/build/archive-release.sh" ]]; then
-    step "Phase 4 — archive to builds/releases/"
+    step "Phase 4 — archive to build/releases/"
     bash "${ROOT_DIR}/build/archive-release.sh" --version "${VERSION}" --app "${APP_BUNDLE}" || \
         yellow "WARN: archive-release.sh failed (dist artifact still at ${APP_BUNDLE})"
 fi
