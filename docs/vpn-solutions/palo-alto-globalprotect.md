@@ -139,6 +139,36 @@ Fixture output uses phrases such as `Connected`, `Disconnected`, and transitiona
 
 When only `globalprotect` exists on Linux, point `globalprotect_binary` at that executable; uvpn does not auto-translate subcommand syntax between tools.
 
+### Linux 6.3+ automation commands (operator context)
+
+| Command | Purpose |
+|---------|---------|
+| `globalprotect connect --gateway <fqdn>` | Attach to manual gateway |
+| `globalprotect disconnect` | Tear down session |
+| `globalprotect show --status` | **uvpn primary on Linux 6.x** |
+| `globalprotect show --details` | Assigned IP, gateway, protocol, uptime |
+| `globalprotect show --version` | Agent build string |
+| `globalprotect collect-log` | Diagnostic bundle (not used by uvpn) |
+
+### Fixture-validated status text
+
+**Connected**
+
+```text
+GlobalProtect status: Connected
+Gateway: vpn.example.com
+Local IP: 10.212.134.200
+```
+
+**Disconnected**
+
+```text
+GlobalProtect status: Not Connected
+Gateway: (none)
+```
+
+**Connecting** samples vary by build—see `tests/fixtures/adapters/globalprotect/`.
+
 ---
 
 ## 4. Connection lifecycle

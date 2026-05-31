@@ -101,6 +101,27 @@ Set `wireguard_interface` in uvpn to the interface name (without path).
 
 `wg show` without `dump` provides human-readable summaries; uvpn uses `dump` for parsing stability.
 
+### 3.1 Example `wg show wg0 dump` (illustrative)
+
+```text
+private-key\tpublic-key\tlisten-port\tfwmark
+h1...\th2...\t51820\toff
+public-key\tpreshared-key\tendpoint\tallowed-ips\tlatest-handshake\trx-bytes\ttx-bytes\tpersistent-keepalive
+p3...\t(none)\t203.0.113.9:51820\t10.8.0.0/24\t1717171717\t1234567\t890123\t25
+```
+
+When **latest-handshake** is `0` or absent, treat the peer as never established. uvpn computes age as `now - latest-handshake` and marks connected when age is below **180 seconds** (adapter default).
+
+### 3.2 `wg-quick` lifecycle commands
+
+| Command | Effect |
+|---------|--------|
+| `wg-quick up wg0` | Creates interface, applies `PostUp` routes |
+| `wg-quick down wg0` | Removes interface and routes |
+| `wg set wg0 peer …` | Runtime peer changes without full restart |
+
+Monitoring hosts should run `uvpn check` under the same privileges that can execute `wg` (often root for interface visibility).
+
 ---
 
 ## 4. Connection lifecycle

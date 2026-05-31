@@ -208,7 +208,21 @@ Server: <hostname>
 Session ID: <identifier>
 ```
 
-Disconnected and error samples are in `tests/fixtures/adapters/pulse/`. Parsing rules: [pulse-cli-contract.md](../architecture/pulse-cli-contract.md).
+**Fixture samples** (`tests/fixtures/adapters/pulse/`):
+
+```text
+# connected.txt
+Connection Status: Connected
+Server: pulse.example.com
+Session ID: abc123
+```
+
+```text
+# disconnected.txt
+Connection Status: Disconnected
+```
+
+Parsing rules: [pulse-cli-contract.md](../architecture/pulse-cli-contract.md).
 
 The connect syntax above is incorporated for operator context; the status subcommand format is validated internally because public launcher chapters emphasize connect/disconnect rather than monitoring output.
 

@@ -110,6 +110,21 @@ Output strings vary by platform and profile; adapter parses common connected / d
 
 Run as the user context that owns the active VPN session (important on macOS keychain-backed profiles).
 
+### 3.1 Launching the CLI
+
+| OS | Interactive | Non-interactive example |
+|----|-------------|-------------------------|
+| Linux / macOS | `/opt/cisco/secureclient/bin/vpn` | `vpn state` |
+| Windows | `vpncli.exe` in `C:\Program Files (x86)\Cisco\Cisco Secure Client\` | `vpncli.exe state` |
+
+Documented automation commands: `connect <host|alias>`, `disconnect`, `stats`, `state`, `quit` / `exit`. uvpn invokes **`state`** only.
+
+### 3.2 Monitoring-relevant output
+
+Exact strings depend on headend and profile, but adapters look for tokens such as **Connected**, **Disconnected**, and **Reconnecting** in stdout. Use `vpn stats` when collecting byte counters for `uvpn statistics`—not required for the traffic-light check cycle.
+
+**Scope guard:** This adapter targets the **Secure Client on endpoints**. Monitoring IPsec site-to-site SAs on an ASA/FTD appliance requires `ipsec` or `generic` from a routed monitoring host, not `cisco_anyconnect`.
+
 ---
 
 ## 4. Connection lifecycle

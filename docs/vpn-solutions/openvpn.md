@@ -107,6 +107,44 @@ Connect with netcat or uvpn’s adapter to the management port. Line-oriented co
 
 After connect, read the greeting line before issuing commands. Some builds require `hold release` when `--management-hold` is configured.
 
+### 3.1 Example management session
+
+```text
+>INFO:OpenVPN Management Interface Version 5 -- type 'help' for more info
+state
+>STATE:1690000000,CONNECTED,SUCCESS,10.8.0.6,203.0.113.20,1194,,
+status
+>ROUTING_TABLE
+VPNROUTE,10.8.0.0/24,10.8.0.1,,
+>GLOBAL_STATS
+END
+quit
+>BYE
+```
+
+uvpn issues `state` (and optionally `status`) over TCP; it does not drive `username` / password prompts on the management channel.
+
+### 3.2 State lines (monitoring-relevant)
+
+Management `state` replies use comma-separated records. The second field is the high-level state name uvpn maps:
+
+| State token | uvpn interpretation |
+|-------------|---------------------|
+| `CONNECTED` | Control plane up |
+| `CONNECTING` | Negotiation in progress |
+| `RECONNECTING` | Session rebuilding |
+| `EXITING` | Shutting down |
+
+Bind management to loopback (`127.0.0.1`) or a Unix socket; the protocol is cleartext.
+
+### 3.3 Server vs client deployments
+
+| Role | Typical uvpn host | Notes |
+|------|-------------------|--------|
+| Road-warrior client | Laptop / workstation running OpenVPN | Enable `management` in client `.conf` |
+| Site-to-site endpoint | Router or gateway with local management port | Probe from the host that runs `openvpn` |
+| Remote server only | Not on the OpenVPN process host | Use `generic` ICMP from a routed LAN client |
+
 ---
 
 ## 4. Connection lifecycle

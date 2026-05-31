@@ -107,6 +107,32 @@ Parses starter output when swanctl unavailable—less structured.
 
 uvpn does not invoke `swanctl --initiate`; read-only monitoring only.
 
+### 3.1 Example `swanctl --list-sas` excerpt
+
+```text
+site-to-site: #1, ESTABLISHED, IKEv2, ...
+  local  192.0.2.1[4500]
+  remote 198.51.100.10[4500]
+  child: net-net: #1, INSTALLED, TUNNEL, ESP:AES_GCM_16-256
+    local  192.0.2.1/32[0]  remote 198.51.100.10/32[0]
+```
+
+uvpn treats the tunnel as **up** when output contains both **ESTABLISHED** (IKE) and **INSTALLED** (CHILD). Either token missing → disconnected or negotiating.
+
+### 3.2 Related swanctl read-only commands
+
+| Command | Use |
+|---------|-----|
+| `swanctl --list-conns` | Loaded connection definitions |
+| `swanctl --list-certs` | Certificate cache |
+| `swanctl --list-pols` | Policy entries |
+
+After editing `/etc/swanctl/conf.d/`, operators run `swanctl --load-all` (out of uvpn scope) before SAs appear.
+
+### 3.3 Legacy `ipsec statusall`
+
+When only `starter` + `ipsec.conf` exist, set `"ipsec_tool": "ipsec"` in config (if supported) or install swanctl. Parsing is heuristic on free-form text—prefer swanctl for production monitoring.
+
 ---
 
 ## 4. Connection lifecycle

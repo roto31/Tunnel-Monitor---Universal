@@ -143,6 +143,36 @@ When `--tunnel` is supplied, only that profile is evaluated.
 
 uvpn attempts, in order: configured `fortinet_binary`, then `fortivpn vpn status`, then `forticlient vpn status`.
 
+### 3.3 Fixture-validated stdout (Linux-style)
+
+**Connected**
+
+```text
+VPN Status: Connected
+Profile: corporate-vpn
+Duration: 01:23:45
+```
+
+**Connecting**
+
+```text
+VPN Status: Connecting
+Profile: corporate-vpn
+```
+
+**Disconnected**
+
+```text
+VPN Status: Disconnected
+Profile: corporate-vpn
+```
+
+Parser rules live in `tests/fixtures/adapters/fortinet/`. Unknown layouts return `supported=False`—pin FortiClient **7.4.x** per [adapter-version-matrix.md](../architecture/adapter-version-matrix.md).
+
+### 3.4 EMS and ZTNA (out of uvpn path)
+
+FortiESNAC registers the endpoint to EMS (`--register`, `--details` on Windows). ZTNA and posture modules do not replace VPN `status` output—uvpn ignores EMS telemetry for tunnel state.
+
 ---
 
 ## 4. Connection lifecycle

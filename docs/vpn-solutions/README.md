@@ -17,3 +17,11 @@ Each guide incorporates **monitoring-applicable** product documentation in rewor
 | **Related** | Internal architecture links |
 
 **Policy:** Summaries restate established vendor facts for operators; they are not substitutes for licensed vendor manuals held by your organization.
+
+**Wiki:** GitHub Wiki pages are generated from these files. After editing a guide, run:
+
+```bash
+python3 scripts/sync-wiki-vpn-guides.py
+```
+
+Commit both the repo guide and `.wiki-publish/` (or push the wiki remote).
