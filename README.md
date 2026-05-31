@@ -49,6 +49,8 @@ Download builds from **[GitHub Releases](https://github.com/roto31/Tunnel-Monito
 
 See [`RELEASES.md`](RELEASES.md) and [`CHANGELOG.md`](CHANGELOG.md). Maintainer guide: [`RELEASING.md`](RELEASING.md).
 
+GUI operator features (v2.0.1+): [`Public/docs/v2/gui-operator-features.md`](Public/docs/v2/gui-operator-features.md).
+
 ## Versioning
 
 - Core: `vendor/core/VERSION` (pinned in [`bundle-manifest.json`](bundle-manifest.json) as `coreVersion`)

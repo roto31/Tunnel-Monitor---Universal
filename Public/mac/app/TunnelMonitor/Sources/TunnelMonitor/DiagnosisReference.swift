@@ -1,6 +1,6 @@
 import Foundation
 
-/// Operator runbooks aligned with `Universal/vendor/core/lib/operator-lib.sh`.
+/// Operator runbooks aligned with `vendor/core/lib/operator-explain.sh`.
 enum DiagnosisReference {
 
     struct Guide: Equatable {

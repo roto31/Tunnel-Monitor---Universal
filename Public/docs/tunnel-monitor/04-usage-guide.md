@@ -26,6 +26,7 @@ Click the menu bar dot to open the status window.
 | Reason line | Human-readable diagnosis (e.g. HEALTHY, DDNS DRIFT) |
 | Down duration | Shown when red; from `down_since` or alert timestamp |
 | Last check | `timestamp` from `state.json` |
+| Schema | `schema_version` (v2 when written by core ≥2.0) |
 | UP / DOWN badge | `alert_state` |
 
 ### Checks
@@ -38,9 +39,21 @@ Click the menu bar dot to open the status window.
 | DNS | `checks.dns` match vs expected |
 | Failure count | Increments each unhealthy cycle until recovery |
 
+### Stale state banner
+
+If `timestamp` is older than **~12 minutes**, an orange banner appears:
+*state.json may be stale — try Force Check or verify launchd.*
+
+### Technical detail
+
+Expand **Technical detail** for operator runbook text and numbered **Suggested steps**
+(same content as `tunnel-check --explain`).
+
 ### Dedup section
 
-Shows whether the gateway SSH read succeeded and the remote state string (e.g. `0:UP`). Title comes from app branding (`UDR7 dedup` or `Router dedup`).
+Shows whether the gateway SSH read succeeded and the remote state string (e.g. `0:UP`).
+Title comes from app branding (`Router dedup` / `UDR7 dedup`). Reads `gateway_dedup`
+with legacy fallback.
 
 ### Actions
 
@@ -53,6 +66,8 @@ Shows whether the gateway SSH read succeeded and the remote state string (e.g. `
 | **Tail Log** | Opens Terminal `tail -f` on `monitor.log` |
 | **Edit Config** | Terminal `sudo -e config.env` (async; status line in popover) |
 | **SSH Test** | `tunnel-check --ssh-test` |
+| **Explain** | Terminal `tunnel-check --explain` (diagnosis runbook) |
+| **Preflight** | Terminal `tunnel-check --preflight` (deps + config checks) |
 | **Reset State** | Admin reset alert latch to UP |
 | **Copy SSH Auth Cmd** | Builds `authorized_keys` one-liner to clipboard |
 | **Reveal** | Finder reveals `state.json` |

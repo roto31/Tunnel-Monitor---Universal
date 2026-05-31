@@ -39,6 +39,21 @@
         "core-engine": "2.0.0"
       },
       "notes": "tunnel-monitor-core v2 universal distribution; gateway_dedup state.json schema; GATEWAY_* config aliases."
+    },
+    {
+      "sequence": 4,
+      "version": "2.0.1",
+      "tag": "v2.0.1",
+      "folder": "04-v2.0.1",
+      "released": "2026-05-31",
+      "dataRevision": {
+        "wizard-fields": "gateway-v2",
+        "app-icon": "liquid-glass-v1",
+        "assets-car": "liquid-glass-v1",
+        "core-engine": "2.0.0",
+        "gui-runbooks": "gui-runbooks-v1"
+      },
+      "notes": "DiagnosisReference GUI runbooks, stale state banner, tunnel-check --explain/--preflight."
     }
   ]
 }

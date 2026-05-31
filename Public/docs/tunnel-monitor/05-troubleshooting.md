@@ -28,13 +28,18 @@ Aligned with `monitor.sh` `compute_diagnosis` (first match wins).
 |------|---------|--------------|
 | `HEALTHY` | Tunnel ping OK | No (recovery if was DOWN) |
 | `OUR_INTERNET_DOWN` | Mac has no internet (1.1.1.1) | No; counter frozen |
-| `UDR7_UNREACHABLE` | Cannot SSH to gateway for dedup | Yes (Mac leads) |
+| `GATEWAY_UNREACHABLE` | Cannot SSH to gateway for dedup | Yes (Mac leads) |
+| `UDR7_UNREACHABLE` / `ROUTER_UNREACHABLE` | Legacy codes in old state only | Same as GATEWAY_UNREACHABLE |
 | `DISAGREEMENT` | Gateway says `0:UP`, Mac sees tunnel down | Yes |
 | `DDNS_DRIFT` | DDNS does not match `REMOTE_WAN_IP` | Yes after threshold |
 | `REMOTE_INTERNET_DOWN` | Remote WAN ping fails, DNS OK | Yes after threshold |
 | `TUNNEL_DOWN` | Tunnel down, WAN/DNS look OK | Yes after threshold |
 
-Human labels in the GUI come from the same codes (e.g. **DDNS DRIFT — fix No-IP record**).
+Human labels and **Technical detail** in the GUI come from `DiagnosisReference.swift`
+(aligned with `vendor/core/lib/operator-explain.sh` and `tunnel-check --explain`).
+
+**CLI runbook:** `tunnel-check --explain`  
+**Preflight:** `tunnel-check --preflight`
 
 **Threshold:** `failure_count` must reach `FAILURE_THRESHOLD` (default 3) with `alert_state` UP before the first down alert. Each daemon cycle is five minutes.
 

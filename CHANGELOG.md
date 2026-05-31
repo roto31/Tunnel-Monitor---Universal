@@ -6,6 +6,20 @@ All notable changes to the **Tunnel Monitor — Universal** macOS distribution
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning follows [SemVer](https://semver.org/).
 
+## [2.0.1] — 2026-05-31
+
+### Code
+
+- **GUI:** `DiagnosisReference` runbooks in popover (*Technical detail* + suggested steps).
+- **GUI:** Stale `state.json` banner when last check &gt; 12 minutes.
+- **GUI:** Schema version label; **Explain** / **Preflight** actions.
+- **CLI:** `tunnel-check --explain` and `--preflight` via `vendor/core/lib/operator-explain.sh`.
+- **CLI:** `tunnel-check` shows `gateway_dedup` with legacy fallback and schema version.
+
+### Data
+
+- `dataRevision`: `gui-runbooks-v1` (see `Public/datasets/bundle-manifest.json`).
+
 ## [2.0.0] — 2026-05-31
 
 ### Code
@@ -43,6 +57,7 @@ Versioning follows [SemVer](https://semver.org/).
 
 - Initial public macOS menu bar app + launchd monitor.
 
+[2.0.1]: https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/v2.0.1
 [2.0.0]: https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/v2.0.0
 [1.1.0]: https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/v1.1.0
 [1.0.0]: https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/v1.0.0

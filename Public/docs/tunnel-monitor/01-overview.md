@@ -48,6 +48,10 @@ Monitoring is **transport-agnostic**: it does not inspect the OpenVPN or IPsec p
 
 - **Traffic-light menu bar dot** — green (healthy), yellow (issues before alert threshold), red (`alert_state` DOWN).
 - **Menu bar popover** — checks, dedup line, failure count, action buttons.
+- **Technical detail disclosure** — runbook text and suggested steps per diagnosis (v2.0.1+).
+- **Stale state banner** — warns when `state.json` is older than ~12 minutes (v2.0.1+).
+- **Schema version label** — shows `state.json` schema (v2 from core engine).
+- **Explain / Preflight actions** — open Terminal with `tunnel-check --explain` / `--preflight`.
 - **Configuration window** — four sections: SMTP, tunnel topology, gateway SSH, tuning (see [03-setup-installation.md](03-setup-installation.md)).
 - **Optional dashboard window** — same status content with a window title bar.
 - **Settings** — menu bar / Dock visibility, poll interval (5 / 15 / 30 s), optional widget sync (Xcode build with widget extension).
@@ -59,7 +63,7 @@ Monitoring is **transport-agnostic**: it does not inspect the OpenVPN or IPsec p
 
 ### Beginner
 
-1. Install the `.pkg` from [GitHub Releases](https://github.com/roto31/UniFi-Tunnel-Monitor/releases).
+1. Install the `.pkg` from [GitHub Releases](https://github.com/roto31/Tunnel-Monitor---Universal/releases).
 2. Open **Tunnel Monitor** from Applications; complete **Configuration** (admin password to save).
 3. Use **Copy SSH Auth Cmd** and **SSH Test** in the menu bar popover.
 4. Run **Test Email** and **Test Notify**.

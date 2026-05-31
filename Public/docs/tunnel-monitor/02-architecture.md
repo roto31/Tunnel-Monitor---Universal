@@ -62,20 +62,22 @@ sequenceDiagram
   participant E as send-email.sh
   participant N as notify.sh
   participant App as Tunnel Monitor.app
+  participant DR as DiagnosisReference
 
   LD->>M: every 300s
   M->>M: ping REMOTE_LAN_IP REMOTE_WAN_IP 1.1.1.1
   M->>M: dig REMOTE_DDNS compare REMOTE_WAN_IP
   M->>M: SSH read gateway dedup state
-  M->>M: compute_diagnosis
-  M->>S: atomic write .tmp then mv
+  M->>M: tm_compute_diagnosis
+  M->>S: atomic write .tmp then mv schema v2
   alt failures >= FAILURE_THRESHOLD and alert_state was UP
     M->>E: alert email unless dedup suppresses
     M->>N: banner Tunnel DOWN
   end
   loop every 5 to 30s
     App->>S: read JSON
-    App->>App: StatusPresentation traffic light
+    App->>DR: guide for diagnosis
+    App->>App: StatusPresentation traffic light stale check
   end
 ```
 
@@ -92,7 +94,7 @@ flowchart TD
   ourNet -->|yes| tunnel{tunnel ping OK?}
   tunnel -->|yes| healthy[HEALTHY recovery if was DOWN]
   tunnel -->|no| udr7reach{Gateway SSH reachable?}
-  udr7reach -->|no| udr7unreach[UDR7_UNREACHABLE Mac alerts]
+  udr7reach -->|no| udr7unreach[GATEWAY_UNREACHABLE Mac alerts]
   udr7reach -->|yes| disagree{Gateway says 0:UP?}
   disagree -->|yes| disagreement[DISAGREEMENT Mac alerts]
   disagree -->|no| dns{DDNS matches REMOTE_WAN_IP?}
@@ -110,7 +112,24 @@ flowchart TD
   dedup -->|no| emailBanner[Email and banner]
 ```
 
-**Dedup email suppress:** When the gateway monitor is reachable and already in a DOWN alert state (`N:DOWN`), the Mac suppresses duplicate email but still shows a banner (except for `UDR7_UNREACHABLE` and `DISAGREEMENT` paths).
+**Dedup email suppress:** When the gateway monitor is reachable and already in a DOWN alert state (`N:DOWN`), the Mac suppresses duplicate email but still shows a banner (except for `GATEWAY_UNREACHABLE` and `DISAGREEMENT` paths).
+
+---
+
+## GUI presentation layer (v2.0.1+)
+
+```mermaid
+flowchart LR
+  stateJson[(state.json)] --> monitorState[MonitorState]
+  monitorState --> stale{timestamp older than 12m?}
+  stale -->|yes| banner[Stale banner in popover]
+  monitorState --> statusPres[StatusPresentation]
+  statusPres --> diagRef[DiagnosisReference.guide]
+  diagRef --> tech[Technical detail plus steps]
+  statusPres --> popover[Menu bar UI]
+```
+
+See [../v2/gui-operator-features.md](../v2/gui-operator-features.md).
 
 ---
 
