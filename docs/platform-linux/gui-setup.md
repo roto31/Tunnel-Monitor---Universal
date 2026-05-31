@@ -17,21 +17,26 @@ pip install -e ".[dev,linux-gui]"
 ## Launch
 
 ```bash
-python3 apps/linux/uvpn_gui.py
+python3 src/gui-linux/uvpn_gui.py
+```
+
+Tkinter fallback (no GTK):
+
+```bash
+python3 src/gui-linux/uvpn_gui_fallback.py
 ```
 
 ## Behavior
 
-- Reads/writes through `MonitorEngine` (same as CLI).
-- Displays last diagnosis, probe summary, and refresh button.
-- If PyGObject/GTK4 unavailable: exits with message to use `bash scripts/uvpn-tui`.
+- Tabs: Status, Statistics, Logs, Diagnostics via `MonitorAPI.full_view()`.
+- Actions: **Run check**, **Refresh**, **Explain**, **Preflight**, **Adapters** (CLI parity).
+- If PyGObject/GTK4 unavailable: use `bash scripts/uvpn-tui` or tkinter fallback.
 
 ## Distribution fallback
 
 | Environment | Recommended interface |
 |-------------|----------------------|
-| Desktop with GTK4 | `uvpn_gui.py` |
+| Desktop with GTK4 | `src/gui-linux/uvpn_gui.py` |
+| Desktop without GTK | `src/gui-linux/uvpn_gui_fallback.py` |
 | Server / minimal install | `uvpn-tui` or `uvpn` CLI |
 | SSH session | `uvpn-tui` |
-
-Feature parity with CLI/TUI is the design goal; v0.1 GUI is a functional scaffold — explain/preflight via TUI or CLI until expanded.

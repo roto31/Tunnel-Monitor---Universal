@@ -1,0 +1,2 @@
+VPN Status: Not Connected
+Profile: corporate-vpn

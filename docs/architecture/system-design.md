@@ -280,8 +280,7 @@ flowchart TB
 | Phase | Deliverable |
 |-------|-------------|
 | v0.1 | Core engine, 4 adapters, CLI/TUI, GTK scaffold, Swift reader |
-| v0.2 | MonitorAPI, statistics/logs, Forti/GP/Pulse heuristics, tkinter fallback, Liquid Glass |
-| v0.3 | Harden enterprise adapters per validated CLI versions |
-| v1.0 | Signed packages, systemd/launchd scheduling |
+| v0.2 | MonitorAPI, statistics/logs, enterprise adapter stubs, tkinter fallback, Liquid Glass (pre-release) |
+| v1.0 | Production enterprise adapters (fixture-validated), GUI CLI parity, systemd/launchd scheduling, `uvpn-v1.0.0` |
 
 Each new adapter requires **cited** vendor CLI/API documentation in `docs/research/`.

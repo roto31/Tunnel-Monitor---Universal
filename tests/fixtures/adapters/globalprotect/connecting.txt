@@ -1,0 +1,2 @@
+GlobalProtect status: Connecting
+Gateway: vpn.example.com

@@ -79,15 +79,15 @@ This document supports architecture decisions for **uvpn**. Claims are tied to p
 
 ---
 
-## Enterprise SSL VPN clients (v0.2 status)
+## Enterprise SSL VPN clients (v1.0 status)
 
 | Product | Adapter | Monitoring surface | Verification |
 |---------|---------|-------------------|--------------|
-| Fortinet FortiClient | `fortinet` | `fortivpn` / `forticlient vpn status` heuristic | [FortiClient docs](https://docs.fortinet.com/product/forticlient) — **CLI varies by version** |
-| Palo Alto GlobalProtect | `globalprotect` | `gpctl show status` heuristic | [GlobalProtect docs](https://docs.paloaltonetworks.com/globalprotect) — **gpctl OS-dependent** |
-| Pulse / Ivanti | `pulse` | `pulselauncher status` heuristic | [Pulse docs](https://docs.pulsesecure.net/) — **research gap** |
+| Fortinet FortiClient | `fortinet` | `fortivpn vpn status` (version-pinned) | [FortiClient docs](https://docs.fortinet.com/product/forticlient) + [version matrix](adapter-version-matrix.md) — **documented-at, fixture-validated** |
+| Palo Alto GlobalProtect | `globalprotect` | `gpctl show status` | [GlobalProtect docs](https://docs.paloaltonetworks.com/globalprotect) + fixtures — **documented-at** |
+| Pulse / Ivanti | `pulse` | `pulselauncher status` | [Pulse CLI contract](pulse-cli-contract.md) + fixtures — **documented-at** |
 
-Use `generic` adapter when vendor CLI is unavailable or unverified.
+Use `generic` only when no vendor client is installed.
 
 ---
 
@@ -114,15 +114,15 @@ Use `generic` adapter when vendor CLI is unavailable or unverified.
 
 ---
 
-## Protocols — implementation status (v0.2)
+## Protocols — implementation status (v1.0)
 
 | Product | Status | Notes |
 |---------|--------|-------|
-| Fortinet FortiClient | **Heuristic adapter** | Validate CLI on your version |
-| Palo Alto GlobalProtect | **Heuristic adapter** | gpctl path varies |
-| Pulse Secure / Ivanti | **Heuristic adapter** | Prefer `generic` until validated |
+| Fortinet FortiClient | **Production (fixtures)** | Unsupported versions → `supported=False` |
+| Palo Alto GlobalProtect | **Production (fixtures)** | Separate macOS/Linux fixture sets |
+| Pulse Secure / Ivanti | **Production (CLI + fixtures)** | Use `pulse`, not `generic`, when client installed |
 
-Until validated on your host, set `"vpn_type": "generic"` and rely on universal probes.
+Validation is vendor-doc fixture based (no lab). See [adapter-version-matrix.md](adapter-version-matrix.md).
 
 ---
 

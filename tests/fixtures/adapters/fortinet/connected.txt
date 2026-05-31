@@ -1,0 +1,3 @@
+VPN Status: Connected
+Profile: corporate-vpn
+Duration: 01:23:45

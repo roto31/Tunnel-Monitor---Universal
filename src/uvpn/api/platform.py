@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from uvpn.adapters.registry import get_adapter, list_adapters
-from uvpn.core.config import DEFAULT_CONFIG_PATH, MonitorConfig
+from uvpn.core.config import MonitorConfig, config_path
 from uvpn.core.engine import MonitorEngine
 from uvpn.core.models import CheckSnapshot
 
@@ -120,5 +120,5 @@ class MonitorAPI:
     def from_config_path(cls, path: str | None = None) -> MonitorAPI:
         from pathlib import Path
 
-        cfg = MonitorConfig.load(Path(path) if path else DEFAULT_CONFIG_PATH)
+        cfg = MonitorConfig.load(Path(path) if path else config_path())
         return cls(cfg)

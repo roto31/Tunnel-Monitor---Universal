@@ -7,7 +7,29 @@ Versioning follows [SemVer](https://semver.org/).
 
 Legacy bash monitor history: [legacy/CHANGELOG-legacy.md](legacy/CHANGELOG-legacy.md).
 
+## [1.0.0] — 2026-05-30
+
+### Added
+
+- **Adapter test harness:** fixture-based tests for Fortinet, GlobalProtect, and Pulse (`tests/fixtures/adapters/`).
+- **Enterprise adapters (production):** version-pinned CLI parsers with `PRODUCTION_VALIDATED` flag.
+- **Scheduling:** `src/deploy/linux/` (systemd service + timer) and `src/deploy/macos/` (LaunchAgent template + installers).
+- **GUI parity:** Explain, Preflight, and Adapters actions on Linux GTK/tkinter and macOS menu bar.
+- **macOS UX:** stale-state banner (>12 min), action sheet for CLI output.
+- **Docs:** adapter version matrix, Pulse CLI contract, fixture provenance policy.
+- **Release workflow:** `.github/workflows/uvpn-release.yml` for `uvpn-v*` tags.
+
+### Changed
+
+- **0.2.0 retroactive label:** development pre-release; 1.0.0 is first production gate.
+- Dynamic config paths (`UVPN_CONFIG_DIR`) for tests and deployed units.
+- Pulse guide no longer recommends `generic` over the Pulse adapter.
+
+[1.0.0]: https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/uvpn-v1.0.0
+
 ## [0.2.0] — 2026-05-31
+
+> **Pre-release:** shipped during development; superseded by 1.0.0 production gate.
 
 ### Added
 

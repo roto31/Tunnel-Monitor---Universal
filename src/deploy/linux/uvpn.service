@@ -1,0 +1,10 @@
+[Unit]
+Description=Universal VPN Monitor check
+Documentation=https://github.com/roto31/Tunnel-Monitor---Universal
+
+[Service]
+Type=oneshot
+Environment=UVPN_CONFIG_DIR=/etc/uvpn
+ExecStart=/usr/local/bin/uvpn check
+# Non-zero exit when unhealthy is expected; do not mark unit failed for monitoring
+SuccessExitStatus=1

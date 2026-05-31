@@ -14,6 +14,16 @@ struct UniversalVPNMonitorApp: App {
                 }
                 .modifier(TMGlassBadgeModifier(tint: model.color))
 
+                if model.isStale {
+                    HStack(spacing: 6) {
+                        Image(systemName: "clock.badge.exclamationmark")
+                        Text("State stale (>12 min) — run check")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .foregroundStyle(.orange)
+                    .modifier(TMGlassCardModifier(tint: .orange))
+                }
+
                 if let detail = model.detail {
                     Text(detail).font(.caption).foregroundStyle(.secondary)
                 }
@@ -43,11 +53,29 @@ struct UniversalVPNMonitorApp: App {
                     Button("Refresh") { model.reload() }
                     Button("Run check") { model.runCheck() }
                 }
+                HStack {
+                    Button("Explain") { model.runExplain() }
+                    Button("Preflight") { model.runPreflight() }
+                    Button("Adapters") { model.runAdapters() }
+                }
             }
             .padding(LiquidGlassDesign.cardPadding)
             .frame(width: 340)
             .modifier(TMAppWindowBackgroundModifier())
             .onAppear { model.startPolling() }
+            .sheet(isPresented: $model.showSheet) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(model.sheetTitle).font(.headline)
+                    ScrollView {
+                        Text(model.sheetText).font(.caption.monospaced()).frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    Button("Close") { model.showSheet = false }
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                .padding(16)
+                .frame(width: 420, height: 320)
+                .modifier(TMAppWindowBackgroundModifier())
+            }
         } label: {
             Circle().fill(model.color).frame(width: 10, height: 10)
         }
@@ -58,6 +86,7 @@ enum LiquidGlassDesign {
     static let sectionCornerRadius: CGFloat = 14
     static let cardPadding: CGFloat = 12
     static let containerSpacing: CGFloat = 14
+    static let staleThresholdMinutes: Double = 12
 }
 
 private struct TMAppWindowBackgroundModifier: ViewModifier {
@@ -112,6 +141,10 @@ final class UvpnStateModel: ObservableObject {
     @Published var statsSummary = ""
     @Published var logPreview = ""
     @Published var color = Color.gray
+    @Published var isStale = false
+    @Published var showSheet = false
+    @Published var sheetTitle = ""
+    @Published var sheetText = ""
 
     private let stateURL = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent(".config/uvpn/state.json")
@@ -130,6 +163,7 @@ final class UvpnStateModel: ObservableObject {
             color = .gray
             statsSummary = ""
             logPreview = ""
+            isStale = true
             return
         }
         title = json["diagnosis"] as? String ?? "UNKNOWN"
@@ -143,6 +177,11 @@ final class UvpnStateModel: ObservableObject {
         if let logs = json["logs"] as? [String] {
             logPreview = logs.suffix(6).joined(separator: "\n")
         }
+        if let ts = json["timestamp"] as? String {
+            isStale = Self.isOlderThanMinutes(ts, minutes: LiquidGlassDesign.staleThresholdMinutes)
+        } else {
+            isStale = true
+        }
         switch json["traffic_light"] as? String {
         case "green": color = .green
         case "yellow": color = .yellow
@@ -152,12 +191,56 @@ final class UvpnStateModel: ObservableObject {
     }
 
     func runCheck() {
+        _ = runUvpn(args: ["check"])
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.reload() }
+    }
+
+    func runExplain() {
+        present(title: "Explain", text: runUvpn(args: ["explain"]) ?? "uvpn explain failed")
+    }
+
+    func runPreflight() {
+        present(title: "Preflight", text: runUvpn(args: ["preflight"]) ?? "uvpn preflight failed")
+    }
+
+    func runAdapters() {
+        present(title: "Adapters", text: runUvpn(args: ["adapters"]) ?? "uvpn adapters failed")
+    }
+
+    private func present(title: String, text: String) {
+        sheetTitle = title
+        sheetText = text
+        showSheet = true
+    }
+
+    private func runUvpn(args: [String]) -> String? {
         let paths = ["/usr/local/bin/uvpn", "/opt/homebrew/bin/uvpn"]
         let bin = paths.first { FileManager.default.isExecutableFile(atPath: $0) } ?? "uvpn"
         let task = Process()
         task.executableURL = URL(fileURLWithPath: bin)
-        task.arguments = ["check"]
-        try? task.run()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { self.reload() }
+        task.arguments = args
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        task.standardError = pipe
+        do {
+            try task.run()
+            task.waitUntilExit()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            return String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        } catch {
+            return nil
+        }
+    }
+
+    private static func isOlderThanMinutes(_ iso: String, minutes: Double) -> Bool {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        var date = formatter.date(from: iso)
+        if date == nil {
+            formatter.formatOptions = [.withInternetDateTime]
+            date = formatter.date(from: iso)
+        }
+        guard let parsed = date else { return true }
+        return Date().timeIntervalSince(parsed) > minutes * 60
     }
 }

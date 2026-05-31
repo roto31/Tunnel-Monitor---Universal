@@ -29,17 +29,19 @@ bash scripts/uvpn-tui
 ## macOS GUI
 
 ```bash
-cd apps/macos/UniversalVPNMonitor
+cd src/gui-macos/UniversalVPNMonitor
 swift build -c release
 ```
 
-The Swift app reads `~/.config/uvpn/state.json` written by the Python engine. Trigger checks via:
+The Swift app reads `~/.config/uvpn/state.json` written by the Python engine. Menu bar actions: Refresh, Run check, Explain, Preflight, Adapters.
+
+## LaunchAgent (periodic checks)
 
 ```bash
-uvpn check
+bash src/deploy/macos/install-launchagent.sh
 ```
 
-Or wire a LaunchAgent to run `uvpn check` every 5 minutes (same interval semantics as legacy monitor).
+Runs `uvpn check` every 300 seconds. Config: `~/Library/Application Support/uvpn/config.json`.
 
 ## Cisco AnyConnect on macOS
 

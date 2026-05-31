@@ -5,14 +5,18 @@
 ## Verified sources
 
 - Pulse Secure documentation portal: https://docs.pulsesecure.net/
+- CLI contract (documented-at): [docs/architecture/pulse-cli-contract.md](../architecture/pulse-cli-contract.md)
+- Supported builds: [docs/architecture/adapter-version-matrix.md](../architecture/adapter-version-matrix.md)
 
-## Research gap
+## Production status
 
-**No stable cross-platform monitoring CLI** is documented for all Pulse/Ivanti client versions. uvpn adapter attempts `pulselauncher status` heuristics when installed.
+The `pulse` adapter is **production-quality for documented CLI output** (vendor-doc fixtures). It parses `pulselauncher status` (or `pulse_binary` override) and combines results with universal probes.
 
-**Recommendation:** Use `"vpn_type": "generic"` for production until you validate CLI output for your exact client build.
+**Do not** rely on `generic` alone when you have Pulse/Ivanti installed — use `"vpn_type": "pulse"` so CLI state is evaluated.
 
-## Config example (experimental)
+Validation is **fixture-based** (no lab). Unsupported client versions return `supported=False` per the version matrix.
+
+## Config example
 
 ```json
 {
@@ -27,5 +31,5 @@
 
 | Metric | Source | Verified |
 |--------|--------|----------|
-| Connection heuristic | pulselauncher (if present) | **Not verified across versions** |
+| Connection state | `pulselauncher status` (version-pinned) | Documented-at + fixtures |
 | Data plane | universal probes | Yes |

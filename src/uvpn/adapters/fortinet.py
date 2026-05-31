@@ -6,20 +6,21 @@ from pathlib import Path
 from typing import Any
 
 from uvpn.adapters.base import VpnAdapter
+from uvpn.adapters.cli_parse import parse_fortivpn_status
 from uvpn.core.models import AdapterStatus
 
 
 class FortinetAdapter(VpnAdapter):
     """
-    FortiClient VPN status via documented CLI where installed.
+    FortiClient VPN status via documented CLI.
 
-    **Research gap:** FortiClient CLI subcommands vary by OS and version. This adapter
-    probes common binaries and parses output heuristically. Verify against your
-    FortiClient version docs: https://docs.fortinet.com/product/forticlient
+    Source: https://docs.fortinet.com/product/forticlient
+    Version matrix: docs/architecture/adapter-version-matrix.md
     """
 
     adapter_id = "fortinet"
     vpn_type = "fortinet"
+    PRODUCTION_VALIDATED = True
 
     _BINARIES = ("forticlient", "fortivpn", "/opt/forticlient/fortivpn")
 
@@ -44,16 +45,25 @@ class FortinetAdapter(VpnAdapter):
                 vpn_type=self.vpn_type,
                 supported=False,
                 connected=None,
-                detail="FortiClient CLI not found — use generic adapter or verify binary path",
+                detail="FortiClient CLI not found — set fortinet_binary or use generic",
             )
-        connected = "connected" in out.lower() and "not connected" not in out.lower()
+        parsed = parse_fortivpn_status(out)
+        if parsed.connected is None:
+            return AdapterStatus(
+                adapter_id=self.adapter_id,
+                vpn_type=self.vpn_type,
+                supported=True,
+                connected=None,
+                detail=parsed.detail,
+                raw={"exit_code": code, "snippet": out[:500], "state": parsed.state},
+            )
         return AdapterStatus(
             adapter_id=self.adapter_id,
             vpn_type=self.vpn_type,
             supported=True,
-            connected=connected,
-            detail="forticlient vpn status (heuristic)",
-            raw={"exit_code": code, "snippet": out[:500]},
+            connected=parsed.connected,
+            detail=parsed.detail,
+            raw={"exit_code": code, "state": parsed.state, "snippet": out[:500]},
         )
 
     def collect_statistics(self, config: dict[str, Any], status: AdapterStatus) -> dict[str, Any]:
@@ -67,4 +77,5 @@ class FortinetAdapter(VpnAdapter):
             "logs": False,
             "diagnostics": True,
             "daemon_status": True,
+            "production_validated": self.PRODUCTION_VALIDATED,
         }

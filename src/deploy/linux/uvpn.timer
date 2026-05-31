@@ -1,0 +1,11 @@
+[Unit]
+Description=Run uvpn check on interval
+Documentation=https://github.com/roto31/Tunnel-Monitor---Universal
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=uvpn.service
+
+[Install]
+WantedBy=timers.target

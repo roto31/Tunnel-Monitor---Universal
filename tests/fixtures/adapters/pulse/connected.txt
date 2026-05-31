@@ -1,0 +1,3 @@
+Connection Status: Connected
+Server: pulse.example.com
+Session ID: abc123

@@ -1,0 +1,3 @@
+GlobalProtect status: Connected
+Gateway: vpn.example.com
+Local IP: 10.212.134.200

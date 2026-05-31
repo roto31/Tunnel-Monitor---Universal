@@ -33,9 +33,9 @@ Config key: `"vpn_type": "my_vendor"`.
 3. Add setup guide in `docs/vpn-solutions/<name>.md`.
 4. Register in `registry.py`.
 5. Add wiki page under VPN Solutions.
-6. Document **research gaps** if CLI is heuristic.
+6. Document version matrix entry if CLI is version-pinned.
 
-## Capability matrix (v0.2)
+## Capability matrix (v1.0)
 
 | vpn_type | Status | Statistics | Logs | Source |
 |----------|--------|------------|------|--------|
@@ -44,9 +44,9 @@ Config key: `"vpn_type": "my_vendor"`.
 | wireguard | `wg show dump` | peer rx/tx | — | [wg(8)](https://manpages.debian.org/bookworm/wireguard-tools/wg.8.en.html) |
 | ipsec/ikev2 | `swanctl --list-sas` | same | journalctl | [strongSwan](https://docs.strongswan.org/docs/latest/swanctl/swanctl.html) |
 | cisco_anyconnect | `vpn state` | `vpn stats` | — | [Cisco admin guide](https://www.cisco.com/c/en/us/td/docs/security/vpn_client/anyconnect/Cisco-Secure-Client-5/admin/guide/b-cisco-secure-client-admin-guide-5-0/customize-localize-anyconnect.html) |
-| fortinet | heuristic CLI | heuristic | — | [FortiClient docs](https://docs.fortinet.com/product/forticlient) — **gap** |
-| globalprotect | `gpctl` heuristic | heuristic | — | [PAN GlobalProtect](https://docs.paloaltonetworks.com/globalprotect) — **gap** |
-| pulse | heuristic | — | — | **Research gap** |
+| fortinet | production CLI parser | version-pinned | — | [FortiClient docs](https://docs.fortinet.com/product/forticlient) + [matrix](adapter-version-matrix.md) |
+| globalprotect | `gpctl` parser | version-pinned | — | [PAN GlobalProtect](https://docs.paloaltonetworks.com/globalprotect) + fixtures |
+| pulse | `pulselauncher status` | CLI contract | — | [pulse-cli-contract.md](pulse-cli-contract.md) |
 
 ## Diagram
 

@@ -38,4 +38,4 @@ For scheduled checks, use cron or systemd timer calling `uvpn check` directly; u
 
 ## Fallback on Linux
 
-If GTK GUI packages are missing, `apps/linux/uvpn_gui.py` prints a message and suggests `uvpn-tui`.
+If GTK GUI packages are missing, `src/gui-linux/uvpn_gui.py` prints a message and suggests `uvpn-tui`.

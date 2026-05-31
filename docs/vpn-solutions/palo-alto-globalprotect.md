@@ -5,10 +5,13 @@
 ## Verified sources
 
 - GlobalProtect admin documentation: https://docs.paloaltonetworks.com/globalprotect
+- Supported builds: [adapter-version-matrix.md](../architecture/adapter-version-matrix.md)
 
-## Research gap
+## Production status (v1.0.0)
 
-`gpctl` is documented for macOS GlobalProtect app management; Linux availability **varies by package**. Adapter uses `gpctl show status` when binary exists.
+The `globalprotect` adapter parses `gpctl show status` output using vendor-doc fixtures (`tests/fixtures/adapters/globalprotect/`). Separate macOS and Linux fixture sets.
+
+When `gpctl` is missing, adapter returns `supported=False` — use `generic` for reachability-only monitoring.
 
 ## Config example
 
@@ -25,10 +28,10 @@
 
 | Metric | Source | Verified |
 |--------|--------|----------|
-| Portal connection status | gpctl output (heuristic) | Partial |
+| Portal connection status | `gpctl show status` parser | Documented-at + fixtures |
 | Tunnel reachability | universal probes | Yes |
 
 ## Troubleshooting
 
-- gpctl missing on Linux → use `generic` adapter with probes only.
-- Split tunnel may show connected while remote LAN fails — expected; diagnosis uses combined adapter + ping.
+- gpctl missing on Linux → set `globalprotect_binary` or use `generic` with probes only.
+- Split tunnel may show connected while remote LAN fails — diagnosis uses combined adapter + ping.

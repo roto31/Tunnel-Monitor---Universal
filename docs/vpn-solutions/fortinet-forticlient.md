@@ -5,12 +5,13 @@
 ## Verified sources
 
 - FortiClient product documentation: https://docs.fortinet.com/product/forticlient
+- Supported builds: [adapter-version-matrix.md](../architecture/adapter-version-matrix.md)
 
-## Research gap
+## Production status (v1.0.0)
 
-FortiClient CLI subcommands (`fortivpn`, `forticlient vpn status`) **vary by OS and version**. The uvpn adapter uses **heuristic parsing** — validate output on your deployment before relying on control-plane status alone.
+The `fortinet` adapter uses version-pinned CLI parsers (`fortivpn vpn status`, `forticlient vpn status`) validated against vendor-doc fixtures in `tests/fixtures/adapters/fortinet/`.
 
-Always combine with universal probes (`remote_lan_ip` ping).
+Unsupported client versions return `supported=False`. Always combine adapter output with universal probes (`remote_lan_ip` ping).
 
 ## Config example
 
@@ -31,10 +32,10 @@ Install FortiClient per Fortinet docs, set `fortinet_binary` if not on PATH.
 
 | Metric | Source | Verified |
 |--------|--------|----------|
-| Connected heuristic | CLI stdout | Partial — version-dependent |
+| Connection state | CLI stdout (version-pinned parser) | Documented-at + fixtures |
 | Data plane | ICMP to `remote_lan_ip` | Yes |
 
 ## Troubleshooting
 
-- CLI not found → set `fortinet_binary` or use `"vpn_type": "generic"`.
-- Connected but LAN down → routing/firewall; trust diagnosis `TUNNEL_DOWN`.
+- CLI not found → set `fortinet_binary` or use `"vpn_type": "generic"` for reachability-only.
+- Connected but LAN down → routing/firewall; diagnosis `TUNNEL_DOWN`.

@@ -8,6 +8,14 @@
 | [platform-abstraction.md](architecture/platform-abstraction.md) | MonitorAPI specification |
 | [plugin-adapters.md](architecture/plugin-adapters.md) | Adapter development guide |
 | [research-vpn-platforms.md](architecture/research-vpn-platforms.md) | Cited VPN research |
+| [adapter-version-matrix.md](architecture/adapter-version-matrix.md) | Enterprise client version support (v1.0) |
+| [pulse-cli-contract.md](architecture/pulse-cli-contract.md) | Pulse/Ivanti CLI validation criteria |
+
+## Deployment
+
+| Document | Description |
+|----------|-------------|
+| [scheduling.md](deploy/scheduling.md) | systemd timer + macOS LaunchAgent |
 
 ## Linux
 
@@ -20,6 +28,7 @@
 ## macOS
 
 - [installation.md](platform-macos/installation.md)
+- [cli-usage.md](platform-macos/cli-usage.md)
 - [terminal-app.md](platform-macos/terminal-app.md)
 - [gui-setup.md](platform-macos/gui-setup.md)
 
@@ -32,6 +41,11 @@
 - [fortinet-forticlient.md](vpn-solutions/fortinet-forticlient.md)
 - [palo-alto-globalprotect.md](vpn-solutions/palo-alto-globalprotect.md)
 - [pulse-ivanti.md](vpn-solutions/pulse-ivanti.md)
+
+## Releases
+
+- [../RELEASING.md](../RELEASING.md) — tagging, CI, checklist
+- [../CHANGELOG.md](../CHANGELOG.md) — version history
 
 ## Legacy
 

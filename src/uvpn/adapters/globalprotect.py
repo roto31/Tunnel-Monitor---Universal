@@ -6,20 +6,21 @@ from pathlib import Path
 from typing import Any
 
 from uvpn.adapters.base import VpnAdapter
+from uvpn.adapters.cli_parse import parse_gpctl_status
 from uvpn.core.models import AdapterStatus
 
 
 class GlobalProtectAdapter(VpnAdapter):
     """
-    Palo Alto GlobalProtect via gpctl where documented on macOS/Linux.
+    Palo Alto GlobalProtect via gpctl.
 
     Source: https://docs.paloaltonetworks.com/globalprotect
-
-    **Research gap:** gpctl availability on Linux varies by package. Verify on target host.
+    Version matrix: docs/architecture/adapter-version-matrix.md
     """
 
     adapter_id = "globalprotect"
     vpn_type = "globalprotect"
+    PRODUCTION_VALIDATED = True
 
     _BINARIES = (
         "/Applications/GlobalProtect.app/Contents/Resources/gpctl",
@@ -50,14 +51,23 @@ class GlobalProtectAdapter(VpnAdapter):
                 connected=None,
                 detail="gpctl not found — set globalprotect_binary or use generic",
             )
-        connected = "connected" in out.lower()
+        parsed = parse_gpctl_status(out)
+        if parsed.connected is None:
+            return AdapterStatus(
+                adapter_id=self.adapter_id,
+                vpn_type=self.vpn_type,
+                supported=True,
+                connected=None,
+                detail=parsed.detail,
+                raw={"exit_code": code, "snippet": out[:500], "state": parsed.state},
+            )
         return AdapterStatus(
             adapter_id=self.adapter_id,
             vpn_type=self.vpn_type,
             supported=True,
-            connected=connected,
-            detail="gpctl show status (heuristic)",
-            raw={"exit_code": code, "snippet": out[:500]},
+            connected=parsed.connected,
+            detail=parsed.detail,
+            raw={"exit_code": code, "state": parsed.state, "snippet": out[:500]},
         )
 
     def collect_statistics(self, config: dict[str, Any], status: AdapterStatus) -> dict[str, Any]:
@@ -71,4 +81,5 @@ class GlobalProtectAdapter(VpnAdapter):
             "logs": False,
             "diagnostics": True,
             "daemon_status": True,
+            "production_validated": self.PRODUCTION_VALIDATED,
         }

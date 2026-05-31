@@ -1,0 +1,2 @@
+VPN Status: Connecting
+Profile: corporate-vpn

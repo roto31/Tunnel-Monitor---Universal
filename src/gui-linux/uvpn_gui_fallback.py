@@ -34,6 +34,9 @@ class UvpnTkApp:
         bar.pack(fill=tk.X, padx=8, pady=4)
         ttk.Button(bar, text="Run check", command=self.run_check).pack(side=tk.LEFT, padx=4)
         ttk.Button(bar, text="Refresh", command=self.refresh).pack(side=tk.LEFT, padx=4)
+        ttk.Button(bar, text="Explain", command=self.show_explain).pack(side=tk.LEFT, padx=4)
+        ttk.Button(bar, text="Preflight", command=self.show_preflight).pack(side=tk.LEFT, padx=4)
+        ttk.Button(bar, text="Adapters", command=self.show_adapters).pack(side=tk.LEFT, padx=4)
         self.refresh()
 
     def _set(self, widget: scrolledtext.ScrolledText, data: object) -> None:
@@ -51,6 +54,26 @@ class UvpnTkApp:
         self._set(self.stats_text, view.statistics)
         self._set(self.logs_text, "\n".join(view.logs))
         self._set(self.diag_text, view.diagnostics)
+
+    def show_explain(self) -> None:
+        self._popup("Explain", self.api.explain())
+
+    def show_preflight(self) -> None:
+        fails, lines = self.api.preflight()
+        body = "\n".join(lines) + f"\n\nResult: {len(lines) - fails} ok, {fails} failed"
+        self._popup("Preflight", body)
+
+    def show_adapters(self) -> None:
+        self._popup("Adapters", "\n".join(self.api.list_adapters()))
+
+    def _popup(self, title: str, body: str) -> None:
+        win = tk.Toplevel(self.root)
+        win.title(title)
+        win.geometry("520x360")
+        text = scrolledtext.ScrolledText(win, wrap=tk.WORD)
+        text.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
+        text.insert(tk.END, body)
+        text.configure(state=tk.DISABLED)
 
     def run(self) -> None:
         self.root.mainloop()

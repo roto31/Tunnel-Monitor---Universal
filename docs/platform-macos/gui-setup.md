@@ -5,24 +5,38 @@ Native menu bar application reading shared `~/.config/uvpn/state.json`.
 ## Build
 
 ```bash
-cd apps/macos/UniversalVPNMonitor
+cd src/gui-macos/UniversalVPNMonitor
 swift build -c release
 .build/release/UniversalVPNMonitor
 ```
 
-Requires macOS 14+; Liquid Glass styling targets macOS 26 when available.
+Requires macOS 14+; Liquid Glass styling on macOS 26+ with material fallback on older releases.
 
 ## Workflow
 
 1. Install and configure uvpn CLI (`pip install -e .`, `uvpn init-config`).
-2. Run periodic checks: `uvpn check` (manual, cron, or launchd).
-3. Launch menu bar app — polls `state.json` and offers Refresh / Run check.
+2. Run periodic checks: `uvpn check` or install [LaunchAgent](../deploy/scheduling.md).
+3. Launch menu bar app — polls `state.json` every 15s.
+
+## Menu bar features (v1.0)
+
+| Feature | Behavior |
+|---------|----------|
+| Status badge | Traffic-light color from `state.json` |
+| Stale banner | Orange warning when timestamp > 12 minutes |
+| Statistics / Logs / Diagnostics | Disclosure groups |
+| Refresh / Run check | Reload state or invoke `uvpn check` |
+| Explain / Preflight / Adapters | Shell out to `uvpn` CLI; results in sheet |
 
 The Swift app **does not embed probe logic** — it reflects engine output only.
 
-## launchd timer (optional)
+## Periodic checks
 
-See [../platforms/macos/install.md](../platforms/macos/install.md) for `LaunchAgent` example running `uvpn check` every 5 minutes.
+```bash
+bash src/deploy/macos/install-launchagent.sh
+```
+
+See [scheduling.md](../deploy/scheduling.md).
 
 ## vs legacy Tunnel Monitor.app
 

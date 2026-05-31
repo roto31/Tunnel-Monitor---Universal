@@ -43,27 +43,25 @@ Example for WireGuard site-to-site:
 uvpn preflight
 uvpn check
 bash scripts/uvpn-tui
-python3 apps/linux/uvpn_gui.py   # or fallback to TUI if no GTK
+python3 src/gui-linux/uvpn_gui.py   # or fallback to TUI if no GTK
 ```
 
-## systemd timer (optional)
+## systemd timer
 
-```ini
-[Unit]
-Description=Universal VPN Monitor check
+Shipped unit files live in `src/deploy/linux/`:
 
-[Timer]
-OnBootSec=2min
-OnUnitActiveSec=5min
-
-[Install]
-WantedBy=timers.target
+```bash
+sudo bash src/deploy/linux/install-systemd.sh
 ```
 
-```ini
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/uvpn check
+This installs `uvpn.service` (oneshot `uvpn check`) and `uvpn.timer` (every 5 minutes). Config directory: `/etc/uvpn/config.json` (`UVPN_CONFIG_DIR=/etc/uvpn`).
+
+Manual install:
+
+```bash
+sudo install -m 0644 src/deploy/linux/uvpn.service /etc/systemd/system/
+sudo install -m 0644 src/deploy/linux/uvpn.timer /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now uvpn.timer
 ```
 
 ## Distribution notes

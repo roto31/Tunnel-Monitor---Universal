@@ -43,8 +43,17 @@ def main() -> int:
             check_btn.connect("clicked", lambda *_: self._run_check())
             refresh_btn = Gtk.Button(label="Refresh")
             refresh_btn.connect("clicked", lambda *_: self._refresh())
+            explain_btn = Gtk.Button(label="Explain")
+            explain_btn.connect("clicked", lambda *_: self._show_text("Explain", api.explain()))
+            preflight_btn = Gtk.Button(label="Preflight")
+            preflight_btn.connect("clicked", lambda *_: self._show_preflight())
+            adapters_btn = Gtk.Button(label="Adapters")
+            adapters_btn.connect("clicked", lambda *_: self._show_text("Adapters", "\n".join(api.list_adapters())))
 
             bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8, halign=Gtk.Align.END)
+            bar.append(adapters_btn)
+            bar.append(preflight_btn)
+            bar.append(explain_btn)
             bar.append(refresh_btn)
             bar.append(check_btn)
 
@@ -72,6 +81,18 @@ def main() -> int:
             self._set("Statistics", view.statistics)
             self._set("Logs", "\n".join(view.logs))
             self._set("Diagnostics", view.diagnostics)
+
+        def _show_text(self, title: str, body: str) -> None:
+            win = Gtk.Window(title=title, transient_for=None, modal=True, default_width=520, default_height=360)
+            tv = Gtk.TextView(editable=False, monospace=True, wrap_mode=Gtk.WrapMode.WORD)
+            tv.get_buffer().set_text(body)
+            win.set_child(Gtk.ScrolledWindow(child=tv, margin_top=8, margin_bottom=8, margin_start=8, margin_end=8))
+            win.present()
+
+        def _show_preflight(self) -> None:
+            fails, lines = api.preflight()
+            body = "\n".join(lines) + f"\n\nResult: {len(lines) - fails} ok, {fails} failed"
+            self._show_text("Preflight", body)
 
     app = App(application_id="com.universal.vpnmonitor")
     app.run(None)

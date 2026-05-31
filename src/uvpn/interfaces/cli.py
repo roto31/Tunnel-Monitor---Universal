@@ -7,12 +7,12 @@ from pathlib import Path
 
 from uvpn.adapters.registry import list_adapters
 from uvpn.api.platform import MonitorAPI
-from uvpn.core.config import DEFAULT_CONFIG_PATH, MonitorConfig
+from uvpn.core.config import MonitorConfig, config_path
 
 
 def _config_path(args: argparse.Namespace) -> Path:
-    if args.config == str(DEFAULT_CONFIG_PATH):
-        return DEFAULT_CONFIG_PATH
+    if args.config == str(config_path()):
+        return config_path()
     return Path(args.config)
 
 
@@ -21,7 +21,7 @@ def main(argv: list[str] | None = None) -> int:
         prog="uvpn",
         description="Universal VPN Monitor CLI — status, statistics, logs, diagnostics",
     )
-    parser.add_argument("--config", type=str, default=str(DEFAULT_CONFIG_PATH))
+    parser.add_argument("--config", type=str, default=str(config_path()))
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("check", help="Run one monitoring cycle")
@@ -45,8 +45,8 @@ def main(argv: list[str] | None = None) -> int:
     api = MonitorAPI(cfg)
 
     if args.command == "init-config":
-        if DEFAULT_CONFIG_PATH.is_file() and not args.force:
-            print(f"Config exists: {DEFAULT_CONFIG_PATH}", file=sys.stderr)
+        if config_path().is_file() and not args.force:
+            print(f"Config exists: {config_path()}", file=sys.stderr)
             return 2
         example = MonitorConfig(
             vpn_type="auto",
@@ -57,7 +57,7 @@ def main(argv: list[str] | None = None) -> int:
             openvpn_management="127.0.0.1:7505",
         )
         example.save()
-        print(f"Wrote {DEFAULT_CONFIG_PATH}")
+        print(f"Wrote {config_path()}")
         return 0
 
     if args.command == "adapters":

@@ -7,9 +7,22 @@ from pathlib import Path
 from typing import Any
 
 
-DEFAULT_CONFIG_DIR = Path(os.environ.get("UVPN_CONFIG_DIR", Path.home() / ".config" / "uvpn"))
-DEFAULT_STATE_PATH = DEFAULT_CONFIG_DIR / "state.json"
-DEFAULT_CONFIG_PATH = DEFAULT_CONFIG_DIR / "config.json"
+def config_dir() -> Path:
+    return Path(os.environ.get("UVPN_CONFIG_DIR", str(Path.home() / ".config" / "uvpn")))
+
+
+def state_path() -> Path:
+    return config_dir() / "state.json"
+
+
+def config_path() -> Path:
+    return config_dir() / "config.json"
+
+
+# Backward-compatible aliases (resolved at import; prefer config_dir() in new code)
+DEFAULT_CONFIG_DIR = config_dir()
+DEFAULT_STATE_PATH = state_path()
+DEFAULT_CONFIG_PATH = config_path()
 
 
 @dataclass
@@ -29,7 +42,7 @@ class MonitorConfig:
 
     @classmethod
     def load(cls, path: Path | None = None) -> MonitorConfig:
-        cfg_path = path or DEFAULT_CONFIG_PATH
+        cfg_path = path or config_path()
         if not cfg_path.is_file():
             return cls()
         data = json.loads(cfg_path.read_text(encoding="utf-8"))
@@ -39,7 +52,7 @@ class MonitorConfig:
         return cls(**kwargs, extra=extra)
 
     def save(self, path: Path | None = None) -> None:
-        cfg_path = path or DEFAULT_CONFIG_PATH
+        cfg_path = path or config_path()
         cfg_path.parent.mkdir(parents=True, exist_ok=True)
         payload = {
             "vpn_type": self.vpn_type,

@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from uvpn.core.config import DEFAULT_STATE_PATH
+from uvpn.core.config import state_path
 from uvpn.core.models import CheckSnapshot
 
 
@@ -17,7 +17,7 @@ def _atomic_write(path: Path, payload: dict) -> None:
 
 class StateStore:
     def __init__(self, path: Path | None = None) -> None:
-        self.path = path or DEFAULT_STATE_PATH
+        self.path = path or state_path()
 
     def read(self) -> dict | None:
         if not self.path.is_file():
