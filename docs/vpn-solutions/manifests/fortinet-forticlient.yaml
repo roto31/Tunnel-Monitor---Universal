@@ -3,9 +3,16 @@ pinned_version: "FortiClient 7.4.x"
 sources:
   - id: forticlient-linux-cli
     title: "FortiClient Administration — Linux CLI commands"
+    url: "https://docs.fortinet.com/document/forticlient/7.4.7/administration-guide/41299/forticlient-linux-cli-commands"
     sections: [3]
     last_verified: "2026-05-31"
   - id: forticlient-windows-cli
     title: "FortiClient Administration — Windows CLI commands"
+    url: "https://docs.fortinet.com/document/forticlient/7.4.7/administration-guide/95591/forticlient-windows-cli-commands"
     sections: [3]
+    last_verified: "2026-05-31"
+  - id: forticlient-product
+    title: "FortiClient product documentation hub"
+    url: "https://docs.fortinet.com/product/forticlient"
+    sections: [1, 2]
     last_verified: "2026-05-31"

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 260" role="img" aria-label="WireGuard interface and peer handshake">
+  <defs>
+    <style>
+      .box { fill:#f0fdf4; stroke:#15803d; stroke-width:2; rx:8; }
+      .title { font:600 14px system-ui,sans-serif; fill:#14532d; }
+      .label { font:12px system-ui,sans-serif; fill:#166534; }
+      .arrow { stroke:#16a34a; stroke-width:2; fill:none; marker-end:url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#16a34a"/></marker>
+  </defs>
+  <rect class="box" x="20" y="70" width="180" height="120"/>
+  <text class="title" x="40" y="98">wg0 interface</text>
+  <text class="label" x="40" y="122">wg show dump</text>
+  <text class="label" x="40" y="144">handshake age heuristic</text>
+  <rect class="box" x="280" y="90" width="120" height="80"/>
+  <text class="title" x="300" y="118">uvpn</text>
+  <rect class="box" x="480" y="70" width="200" height="120"/>
+  <text class="title" x="500" y="98">Remote peer</text>
+  <text class="label" x="500" y="122">Curve25519 / ChaCha20</text>
+  <path class="arrow" d="M200 130 H480"/>
+  <text class="label" x="310" y="122">UDP encapsulation</text>
+</svg>

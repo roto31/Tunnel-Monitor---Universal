@@ -2,6 +2,12 @@ platform: cisco_anyconnect
 pinned_version: "Secure Client 5.x"
 sources:
   - id: sc5-local-cli
-    title: "Secure Client Administration — local CLI"
+    title: "Cisco Secure Client 5 — Use the CLI commands"
+    url: "https://www.cisco.com/c/en/us/td/docs/security/vpn_client/anyconnect/Cisco-Secure-Client-5/admin/guide/b-cisco-secure-client-admin-guide-5-0/customize-localize-anyconnect.html"
     sections: [3]
+    last_verified: "2026-05-31"
+  - id: sc5-admin-guide
+    title: "Cisco Secure Client 5.1 — Administrator Guide"
+    url: "https://www.cisco.com/c/en/us/td/docs/security/vpn_client/anyconnect/Cisco-Secure-Client-5/admin/guide/b-cisco-secure-client-admin-guide-5-1.html"
+    sections: [2, 4]
     last_verified: "2026-05-31"

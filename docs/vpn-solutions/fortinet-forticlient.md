@@ -20,19 +20,26 @@ Parses VPN status text from **`forticlient vpn status`** on Linux or **`FortiVPN
 
 ---
 
-## Diagrams
+## Visual reference
 
-(See existing FortiClient deployment, command tree, lifecycle, and uvpn flow diagrams in prior revision — retained below.)
+![FortiClient endpoint VPN topology](assets/fortinet-architecture.svg)
+
+## Diagrams
 
 ```mermaid
 flowchart TB
     subgraph endpoint [Endpoint]
-        FC[FortiClient]
-        FCLI[forticlient or FortiVPN CLI]
-        FC --- FCLI
+        FC[FortiClient agent]
+        LCLI[Linux: forticlient vpn status]
+        WCLI[Windows: FortiVPN --cli --status]
+        FC --- LCLI
+        FC --- WCLI
     end
-    EMS[FortiClient EMS] -.->|profiles| FC
-    FGT[FortiGate or ZTNA edge] <-->|VPN| FC
+    EMS[FortiClient EMS] -.->|profiles ZTNA| FC
+    FGT[FortiGate or ZTNA edge] <-->|SSL or IPsec VPN| FC
+    FGT --> LAN[Protected network]
+    uvpn --> LCLI
+    uvpn --> WCLI
 ```
 
 ```mermaid
@@ -44,26 +51,32 @@ flowchart TD
     ROOT --> view
     ROOT --> edit
     ROOT --> remove
-    status --> uvpn[uvpn parser]
+    status --> PARSE[uvpn parse Connected Connecting]
+    WROOT[FortiVPN.exe --cli] --> wstatus[--status tunnel]
+    wstatus --> PARSE
 ```
 
 ```mermaid
 stateDiagram-v2
     [*] --> Disconnected
-    Disconnected --> Connecting
-    Connecting --> Connected
-    Connecting --> Disconnected
-    Connected --> Disconnected
+    Disconnected --> Connecting: vpn connect profile
+    Connecting --> Connected: exit 0 status line
+    Connecting --> Disconnected: exit non-zero
+    Connected --> Disconnected: disconnect
     Disconnected --> [*]
 ```
 
 ```mermaid
 flowchart LR
     E[MonitorEngine] --> A[fortinet adapter]
-    A --> CLI[FortiClient CLI status]
-    E --> P[Probes]
-    A --> D[Diagnosis]
+    A -->|pick binary| L[Linux forticlient]
+    A -->|pick binary| W[Windows FortiVPN]
+    L --> PARSE[Fixture parser 7.x]
+    W --> PARSE
+    E --> P[ICMP probes]
+    PARSE --> D[Diagnosis]
     P --> D
+    D --> ST[state.json]
 ```
 
 ---
@@ -218,6 +231,18 @@ Fixtures: `tests/fixtures/adapters/fortinet/`
 
 - CLI missing → set `fortinet_binary` or fall back to `generic` for probes-only.
 - Connected in CLI but LAN probe fails → `TUNNEL_DOWN`.
+
+---
+
+## Citations
+
+| Topic | Authoritative source |
+|-------|---------------------|
+| Linux VPN CLI (`forticlient vpn status`) | [FortiClient 7.4.7 — Linux CLI commands](https://docs.fortinet.com/document/forticlient/7.4.7/administration-guide/41299/forticlient-linux-cli-commands) |
+| Windows VPN CLI (`FortiVPN --cli --status`) | [FortiClient 7.4.7 — Windows CLI commands](https://docs.fortinet.com/document/forticlient/7.4.7/administration-guide/95591/forticlient-windows-cli-commands) |
+| Product documentation hub | [FortiClient on Fortinet Docs](https://docs.fortinet.com/product/forticlient) |
+
+Manifest: [manifests/fortinet-forticlient.yaml](manifests/fortinet-forticlient.yaml)
 
 ---
 

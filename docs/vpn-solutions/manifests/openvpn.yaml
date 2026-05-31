@@ -2,6 +2,12 @@ platform: openvpn
 pinned_version: "OpenVPN 2.6 community"
 sources:
   - id: openvpn-management
-    title: "OpenVPN Management Interface specification"
-    sections: [3, 4]
+    title: "OpenVPN community — Management Interface"
+    url: "https://openvpn.net/community-docs/management-interface.html"
+    sections: [3, 4, 8]
+    last_verified: "2026-05-31"
+  - id: openvpn-management-notes
+    title: "OpenVPN source — management-notes.txt"
+    url: "https://github.com/OpenVPN/openvpn/blob/master/doc/management-notes.txt"
+    sections: [3, 8]
     last_verified: "2026-05-31"

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" role="img" aria-label="GlobalProtect portal gateway topology">
+  <defs>
+    <style>
+      .box { fill:#eff6ff; stroke:#1d4ed8; stroke-width:2; rx:8; }
+      .title { font:600 14px system-ui,sans-serif; fill:#1e3a8a; }
+      .label { font:12px system-ui,sans-serif; fill:#1e40af; }
+      .arrow { stroke:#2563eb; stroke-width:2; fill:none; marker-end:url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#2563eb"/></marker>
+  </defs>
+  <rect class="box" x="20" y="90" width="170" height="120"/>
+  <text class="title" x="40" y="118">GlobalProtect app</text>
+  <text class="label" x="40" y="142">gpctl / globalprotect</text>
+  <text class="label" x="40" y="164">show --status</text>
+  <rect class="box" x="240" y="40" width="150" height="80"/>
+  <text class="title" x="260" y="68">Portal</text>
+  <text class="label" x="260" y="92">Policy / HIP</text>
+  <rect class="box" x="240" y="180" width="150" height="80"/>
+  <text class="title" x="260" y="208">Gateway</text>
+  <text class="label" x="260" y="232">SSL or IPsec</text>
+  <rect class="box" x="460" y="110" width="170" height="100"/>
+  <text class="title" x="480" y="138">Internal networks</text>
+  <text class="label" x="480" y="162">Split or full tunnel</text>
+  <path class="arrow" d="M190 120 H240"/>
+  <path class="arrow" d="M315 120 V180"/>
+  <path class="arrow" d="M390 220 H460"/>
+</svg>

@@ -2,6 +2,17 @@ platform: ipsec
 pinned_version: "strongSwan 5.9+"
 sources:
   - id: swanctl-reference
-    title: "strongSwan swanctl reference"
+    title: "strongSwan — swanctl reference"
+    url: "https://docs.strongswan.org/docs/5.9/swanctl/swanctl.html"
     sections: [3, 4]
+    last_verified: "2026-05-31"
+  - id: rfc7296
+    title: "RFC 7296 — Internet Key Exchange Protocol Version 2 (IKEv2)"
+    url: "https://www.rfc-editor.org/rfc/rfc7296"
+    sections: [1, 4]
+    last_verified: "2026-05-31"
+  - id: rfc4301
+    title: "RFC 4301 — Security Architecture for IP"
+    url: "https://www.rfc-editor.org/rfc/rfc4301"
+    sections: [1]
     last_verified: "2026-05-31"

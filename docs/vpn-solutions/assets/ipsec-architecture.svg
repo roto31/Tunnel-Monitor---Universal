@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 280" role="img" aria-label="strongSwan IKE and CHILD security associations">
+  <defs>
+    <style>
+      .box { fill:#f8fafc; stroke:#475569; stroke-width:2; rx:8; }
+      .title { font:600 14px system-ui,sans-serif; fill:#0f172a; }
+      .label { font:12px system-ui,sans-serif; fill:#334155; }
+      .arrow { stroke:#0ea5e9; stroke-width:2; fill:none; marker-end:url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#0ea5e9"/></marker>
+  </defs>
+  <rect class="box" x="20" y="80" width="150" height="120"/>
+  <text class="title" x="40" y="108">swanctl</text>
+  <text class="label" x="40" y="132">--list-sas</text>
+  <rect class="box" x="210" y="60" width="160" height="160"/>
+  <text class="title" x="230" y="88">charon</text>
+  <text class="label" x="230" y="112">IKE_SA (RFC 7296)</text>
+  <text class="label" x="230" y="134">CHILD_SA ESP</text>
+  <rect class="box" x="420" y="80" width="160" height="120"/>
+  <text class="title" x="440" y="108">Remote gateway</text>
+  <rect class="box" x="620" y="100" width="100" height="80"/>
+  <text class="title" x="632" y="128">LAN</text>
+  <path class="arrow" d="M170 140 H210"/>
+  <path class="arrow" d="M370 140 H420"/>
+  <path class="arrow" d="M580 140 H620"/>
+</svg>

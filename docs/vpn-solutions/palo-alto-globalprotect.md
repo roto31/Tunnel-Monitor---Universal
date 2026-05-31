@@ -20,43 +20,63 @@ Default probe: **`gpctl show status`**. Linux 6.x packages may expose **`globalp
 
 ---
 
+## Visual reference
+
+![GlobalProtect portal and gateway topology](assets/globalprotect-architecture.svg)
+
 ## Diagrams
 
 ```mermaid
 flowchart LR
-    GP[GlobalProtect app] --> PORTAL[Portal]
-    PORTAL --> GW[Gateway]
-    GP -->|tunnel| GW
-    GW --> LAN[Internal networks]
+    subgraph endpoint [Endpoint]
+        GP[GlobalProtect app]
+        G1[gpctl show status]
+        G2[globalprotect show --status]
+        GP --- G1
+        GP --- G2
+    end
+    PORTAL[Portal policy HIP] --> GP
+    GP -->|tunnel SSL or IPsec| GW[Gateway]
+    GW --> LAN[Internal networks split or full]
+    uvpn --> G1
+    uvpn --> G2
 ```
 
 ```mermaid
 flowchart TD
-    POL[Portal policy] --> OND[On-demand]
-    POL --> AON[Always-on]
-    OND --> USER[Manual connect]
-    AON --> AUTO[Login connect]
+    POL[Portal policy] --> OND[On-demand manual]
+    POL --> AON[Always-on login connect]
+    POL --> INT[Internal gateway detect]
+    OND --> USER[User or script connect]
+    AON --> AUTO[Automatic tunnel]
+    INT --> SPLIT[Split tunnel routes]
     USER --> UP[Tunnel up]
     AUTO --> UP
+    UP --> PROBE[uvpn LAN probe may differ]
 ```
 
 ```mermaid
 stateDiagram-v2
     [*] --> Disconnected
-    Disconnected --> Connecting
-    Connecting --> Connected
-    Connecting --> Disconnected
-    Connected --> Disconnected
+    Disconnected --> Connecting: connect gateway
+    Connecting --> Connected: show --status Connected
+    Connecting --> Disconnected: auth or gateway fail
+    Connected --> Reconnecting: network change
+    Reconnecting --> Connected
+    Connected --> Disconnected: disconnect
     Disconnected --> [*]
 ```
 
 ```mermaid
 flowchart LR
     E[MonitorEngine] --> A[globalprotect adapter]
-    A --> CLI[gpctl or globalprotect CLI]
-    E --> P[Probes]
-    A --> D[Diagnosis]
-    P --> D
+    A -->|default macOS| GPCTL[gpctl show status]
+    A -->|Linux 6.x override| GPCMD[globalprotect show --status]
+    GPCTL --> PARSER[Fixture parser]
+    GPCMD --> PARSER
+    E --> PR[ICMP probes]
+    PARSER --> D[Diagnosis]
+    PR --> D
 ```
 
 ---
@@ -208,6 +228,19 @@ uvpn check
 
 - Binary missing → override path or `generic`.
 - CLI connected + probe failure → `TUNNEL_DOWN` (often split tunnel).
+
+---
+
+## Citations
+
+| Topic | Authoritative source |
+|-------|---------------------|
+| Linux CLI (`globalprotect show --status`) | [Use the GlobalProtect App for Linux 6.3](https://docs.paloaltonetworks.com/globalprotect/user-guide/6-3/globalprotect-app-for-linux/use-the-globalprotect-app-for-linux) |
+| Linux install (CLI vs GUI packages) | [Download and Install GlobalProtect for Linux 6.3](https://docs.paloaltonetworks.com/globalprotect/user-guide/6-3/globalprotect-app-for-linux/download-and-install-the-globalprotect-app-for-linux) |
+| Portal / gateway administration | [GlobalProtect Administration Overview](https://docs.paloaltonetworks.com/globalprotect/administration/globalprotect-overview) |
+| Product documentation hub | [GlobalProtect on Palo Alto Docs](https://docs.paloaltonetworks.com/globalprotect) |
+
+Manifest: [manifests/palo-alto-globalprotect.yaml](manifests/palo-alto-globalprotect.yaml)
 
 ---
 

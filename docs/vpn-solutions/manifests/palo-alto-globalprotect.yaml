@@ -2,10 +2,17 @@ platform: globalprotect
 pinned_version: "GlobalProtect 6.x"
 sources:
   - id: gp-linux-user-cli
-    title: "GlobalProtect Linux User Guide — CLI show status"
+    title: "GlobalProtect 6.3 — Use the app for Linux"
+    url: "https://docs.paloaltonetworks.com/globalprotect/user-guide/6-3/globalprotect-app-for-linux/use-the-globalprotect-app-for-linux"
     sections: [3]
     last_verified: "2026-05-31"
   - id: gp-administration
-    title: "GlobalProtect Administration — portal and gateway"
+    title: "GlobalProtect Administration — overview"
+    url: "https://docs.paloaltonetworks.com/globalprotect/administration/globalprotect-overview"
     sections: [1, 4]
+    last_verified: "2026-05-31"
+  - id: gp-linux-install
+    title: "GlobalProtect 6.3 — Download and install for Linux"
+    url: "https://docs.paloaltonetworks.com/globalprotect/user-guide/6-3/globalprotect-app-for-linux/download-and-install-the-globalprotect-app-for-linux"
+    sections: [2]
     last_verified: "2026-05-31"

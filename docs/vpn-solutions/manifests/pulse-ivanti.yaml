@@ -3,16 +3,20 @@ pinned_version: "ISAC 22.x"
 sources:
   - id: isac-install
     title: "ISAC Administration — Installation Overview"
+    url: "https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/installation_overview.htm"
     sections: [2]
     last_verified: "2026-05-31"
   - id: isac-cli-launcher
     title: "ISAC Administration — Command-line Launcher"
+    url: "https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/cli_launcher.htm"
     sections: [3, 6, 8]
     last_verified: "2026-05-31"
   - id: isac-linux-cli
     title: "ISAC Linux Quick Start — Command Line"
+    url: "https://help.ivanti.com/ps/help/en_US/ISAC/vNow/linux-qsg/using-linux-client-command-line.htm"
     sections: [3.2]
     last_verified: "2026-05-31"
 retired_portals:
   - name: "Pulse Secure docs portal (legacy hostname)"
     note: "Retired; content superseded by Ivanti product help"
+    former_url: "https://docs.pulsesecure.net/"

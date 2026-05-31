@@ -1,6 +1,6 @@
 # VPN platform research (internal synthesis)
 
-Architecture support for **uvpn**. Monitoring-applicable product behavior is incorporated in reworded form under [../vpn-solutions/](../vpn-solutions/). This page summarizes adapter decisions without external vendor links.
+Architecture support for **uvpn**. Monitoring-applicable product behavior is incorporated in reworded form under [../vpn-solutions/](../vpn-solutions/). Each guide ends with a **Citations** table linking authoritative vendor and RFC sources.
 
 ---
 
@@ -75,11 +75,11 @@ Use `generic` only when no vendor client CLI is present.
 
 ## Standards note
 
-| Protocol | Reference (text) |
-|----------|------------------|
-| IKEv2 | RFC 7296 |
-| IPsec architecture | RFC 4301 |
-| WireGuard | WireGuard protocol specification (not RFC 7539 — that defines ChaCha20-Poly1305) |
+| Protocol | Reference |
+|----------|-----------|
+| IKEv2 | [RFC 7296](https://www.rfc-editor.org/rfc/rfc7296) |
+| IPsec architecture | [RFC 4301](https://www.rfc-editor.org/rfc/rfc4301) |
+| WireGuard | [WireGuard protocol](https://www.wireguard.com/protocol/) |
 
 ---
 
@@ -118,4 +118,4 @@ Combined adapter + probe logic: `uvpn/core/diagnosis.py`.
 | globalprotect-6-cli | [palo-alto-globalprotect.md](../vpn-solutions/palo-alto-globalprotect.md) |
 | isac-22-cli | [pulse-ivanti.md](../vpn-solutions/pulse-ivanti.md) |
 
-Maintainer-only provenance manifests: `docs/vpn-solutions/manifests/` (titles and version pins; no external URLs).
+Maintainer provenance manifests (with URLs): `docs/vpn-solutions/manifests/`

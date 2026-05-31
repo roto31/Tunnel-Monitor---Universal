@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 260" role="img" aria-label="OpenVPN management and data channel">
+  <defs>
+    <style>
+      .box { fill:#faf5ff; stroke:#7e22ce; stroke-width:2; rx:8; }
+      .title { font:600 14px system-ui,sans-serif; fill:#581c87; }
+      .label { font:12px system-ui,sans-serif; fill:#6b21a8; }
+      .arrow { stroke:#9333ea; stroke-width:2; fill:none; marker-end:url(#arrow); }
+      .mgmt { stroke:#a855f7; stroke-width:2; stroke-dasharray:5 4; fill:none; marker-end:url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9333ea"/></marker>
+  </defs>
+  <rect class="box" x="20" y="60" width="170" height="140"/>
+  <text class="title" x="40" y="88">openvpn process</text>
+  <text class="label" x="40" y="112">TLS data channel</text>
+  <text class="label" x="40" y="134">management TCP</text>
+  <text class="label" x="40" y="156">state / status cmds</text>
+  <rect class="box" x="280" y="90" width="120" height="80"/>
+  <text class="title" x="300" y="118">uvpn</text>
+  <text class="label" x="300" y="140">adapter</text>
+  <rect class="box" x="490" y="60" width="200" height="140"/>
+  <text class="title" x="510" y="88">Remote OpenVPN server</text>
+  <path class="arrow" d="M190 100 H490"/>
+  <path class="mgmt" d="M190 160 H280"/>
+  <text class="label" x="200" y="92">UDP/TCP tunnel</text>
+  <text class="label" x="200" y="178">127.0.0.1:7505</text>
+</svg>

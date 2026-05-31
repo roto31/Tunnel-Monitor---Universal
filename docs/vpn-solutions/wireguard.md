@@ -19,29 +19,38 @@ Runs `wg show <interface> dump` and treats recent peer handshake as connected (d
 
 ---
 
+## Visual reference
+
+![WireGuard interface and peer handshake](assets/wireguard-architecture.svg)
+
 ## Diagrams
 
 ```mermaid
 flowchart LR
-    IF[wg0 interface] <-->|UDP| PEER[remote peer]
+    IF[wg0 interface] <-->|UDP encapsulation| PEER[remote peer]
     uvpn -->|wg show dump| IF
+    IF --> HS[latest-handshake field]
+    HS --> HEU[connected if age under 180s]
 ```
 
 ```mermaid
 sequenceDiagram
-    participant IF as local interface
+    participant IF as local wg0
     participant P as peer
-    IF->>P: handshake
-    P-->>IF: response
-    Note over IF,P: latest handshake timestamp updated
+    IF->>P: handshake initiation
+    P-->>IF: handshake response
+    Note over IF,P: latest-handshake timestamp in dump row
+    Note over IF,P: uvpn heuristic 180s default
 ```
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Down
+    [*] --> Down: interface absent
     Down --> Up: wg-quick up
     Up --> Active: fresh handshake
-    Up --> Stale: old handshake
+    Up --> Stale: handshake older than threshold
+    Active --> Stale: idle peer
+    Stale --> Active: new traffic
     Active --> Down: wg-quick down
     Down --> [*]
 ```
@@ -49,10 +58,12 @@ stateDiagram-v2
 ```mermaid
 flowchart LR
     E[MonitorEngine] --> A[wireguard adapter]
-    A --> WG[wg CLI]
-    E --> P[Probes]
-    A --> D[Diagnosis]
+    A --> WG[wg show dump]
+    WG --> PARSE[parse handshake rx tx]
+    E --> P[ICMP probes required]
+    PARSE --> D[Diagnosis]
     P --> D
+    D -->|handshake OK LAN fail| TD[TUNNEL_DOWN]
 ```
 
 ---
@@ -175,6 +186,18 @@ wireguard-tools 1.0+ with `wg` in PATH.
 
 - Wrong interface → fix config key.
 - Stale handshake + LAN OK → may still be HEALTHY if traffic flows; tune threshold only in adapter code with care.
+
+---
+
+## Citations
+
+| Topic | Authoritative source |
+|-------|---------------------|
+| Protocol cryptography | [WireGuard Protocol](https://www.wireguard.com/protocol/) |
+| `wg` command reference | [wg(8) — wireguard-tools](https://manpages.debian.org/testing/wireguard-tools/wg.8.en.html) |
+| Interface bring-up | [wg-quick(8) — wireguard-tools](https://manpages.debian.org/testing/wireguard-tools/wg-quick.8.en.html) |
+
+Manifest: [manifests/wireguard.yaml](manifests/wireguard.yaml)
 
 ---
 

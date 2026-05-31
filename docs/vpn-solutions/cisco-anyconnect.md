@@ -19,24 +19,29 @@ Invokes **`vpn state`** (and **`vpn stats`** for statistics) on the Secure Clien
 
 ---
 
+## Visual reference
+
+![Cisco Secure Client SSL VPN topology](assets/cisco-architecture.svg)
+
 ## Diagrams
 
 ```mermaid
 flowchart LR
-    SC[Secure Client] -->|SSL VPN| HEAD[Enterprise headend]
+    SC[Secure Client agent] -->|SSL VPN tunnel| HEAD[ASA FTD headend]
     HEAD --> APP[Internal resources]
-    uvpn -->|vpn state| SC
+    uvpn -->|vpn state primary| SC
+    uvpn -->|vpn stats optional| SC
 ```
 
 ```mermaid
 stateDiagram-v2
     [*] --> Disconnected
-    Disconnected --> Connecting
-    Connecting --> Connected
-    Connecting --> Disconnected
-    Connected --> Reconnecting
+    Disconnected --> Connecting: vpn connect profile
+    Connecting --> Connected: state shows connected
+    Connecting --> Disconnected: auth fail
+    Connected --> Reconnecting: network loss
     Reconnecting --> Connected
-    Connected --> Disconnected
+    Connected --> Disconnected: vpn disconnect
     Disconnected --> [*]
 ```
 
@@ -49,15 +54,20 @@ sequenceDiagram
     V->>SC: query session
     SC-->>V: status text
     V-->>U: stdout
+    U->>V: stats optional
+    V-->>U: byte counters management state
 ```
 
 ```mermaid
 flowchart LR
-    E[MonitorEngine] --> A[cisco adapter]
-    A --> CLI[vpn state]
-    E --> P[Probes]
-    A --> D[Diagnosis]
+    E[MonitorEngine] --> A[cisco_anyconnect adapter]
+    A --> STATE[vpn state]
+    A --> STATS[vpn stats optional]
+    E --> P[ICMP probes]
+    STATE --> D[Diagnosis]
+    STATS --> D
     P --> D
+    D -->|same OS user as GUI| OK[accurate session read]
 ```
 
 ---
@@ -186,6 +196,17 @@ Secure Client 5.x local CLI as documented in administration guide for your relea
 
 - Wrong user context → run uvpn as session owner or use launchd user agent.
 - Probe failure → `TUNNEL_DOWN`.
+
+---
+
+## Citations
+
+| Topic | Authoritative source |
+|-------|---------------------|
+| Local CLI (`vpn state`, `vpn stats`) | [Secure Client 5 — Use the CLI commands](https://www.cisco.com/c/en/us/td/docs/security/vpn_client/anyconnect/Cisco-Secure-Client-5/admin/guide/b-cisco-secure-client-admin-guide-5-0/customize-localize-anyconnect.html) |
+| Administrator guide (5.1) | [Cisco Secure Client Administrator Guide 5.1](https://www.cisco.com/c/en/us/td/docs/security/vpn_client/anyconnect/Cisco-Secure-Client-5/admin/guide/b-cisco-secure-client-admin-guide-5-1.html) |
+
+Manifest: [manifests/cisco-anyconnect.yaml](manifests/cisco-anyconnect.yaml)
 
 ---
 

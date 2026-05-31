@@ -19,13 +19,20 @@ Prefers **`swanctl --list-sas`**; falls back to **`ipsec statusall`** on legacy 
 
 ---
 
+## Visual reference
+
+![strongSwan IKE and CHILD security associations](assets/ipsec-architecture.svg)
+
 ## Diagrams
 
 ```mermaid
 flowchart LR
-    SW[swanctl] --> CH[charon daemon]
-    CH <-->|IKE_SA| PEER[remote gateway]
-    CH <-->|CHILD_SA ESP| PEER
+    SW[swanctl --list-sas] --> CH[charon daemon]
+    CH <-->|IKE_SA RFC 7296| PEER[remote gateway]
+    CH <-->|CHILD_SA ESP RFC 4301| PEER
+    PEER --> LAN[protected subnet]
+    uvpn --> SW
+    uvpn --> P[ICMP probes]
 ```
 
 ```mermaid
@@ -35,26 +42,30 @@ sequenceDiagram
     C->>P: IKE_SA_INIT
     P-->>C: IKE_SA_INIT response
     C->>P: IKE_AUTH
-    P-->>C: CHILD_SA installed
+    P-->>C: CHILD_SA INSTALLED
+    Note over C,P: uvpn requires ESTABLISHED + INSTALLED
 ```
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Idle
-    Idle --> IKE_UP
-    IKE_UP --> CHILD_UP
-    CHILD_UP --> Rekeying
+    [*] --> Idle: no IKE_SA
+    Idle --> IKE_UP: negotiation success
+    IKE_UP --> CHILD_UP: ESP installed
+    CHILD_UP --> Rekeying: rekey timer
     Rekeying --> CHILD_UP
-    CHILD_UP --> Idle
+    CHILD_UP --> Idle: delete SA
     Idle --> [*]
 ```
 
 ```mermaid
 flowchart LR
     E[MonitorEngine] --> A[ipsec adapter]
-    A --> SW[swanctl list-sas]
-    E --> P[Probes]
-    A --> D[Diagnosis]
+    A -->|preferred| SW[swanctl --list-sas]
+    A -->|legacy fallback| IP[ipsec statusall]
+    SW --> PARSE[ESTABLISHED INSTALLED]
+    IP --> PARSE
+    E --> P[ICMP probes]
+    PARSE --> D[Diagnosis]
     P --> D
 ```
 
@@ -188,6 +199,18 @@ strongSwan 5.9+ with swanctl recommended.
 
 - SA present + LAN fail → `TUNNEL_DOWN`.
 - Daemon down → `VPN_DAEMON_DOWN`.
+
+---
+
+## Citations
+
+| Topic | Authoritative source |
+|-------|---------------------|
+| swanctl command reference | [strongSwan swanctl](https://docs.strongswan.org/docs/5.9/swanctl/swanctl.html) |
+| IKEv2 protocol | [RFC 7296](https://www.rfc-editor.org/rfc/rfc7296) |
+| IPsec security architecture | [RFC 4301](https://www.rfc-editor.org/rfc/rfc4301) |
+
+Manifest: [manifests/ipsec-ikev2.yaml](manifests/ipsec-ikev2.yaml)
 
 ---
 

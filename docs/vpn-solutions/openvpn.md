@@ -19,32 +19,54 @@ Queries the OpenVPN **management TCP socket** for `state` and optional `status`.
 
 ---
 
+## Visual reference
+
+![OpenVPN management socket and data channel](assets/openvpn-architecture.svg)
+
 ## Diagrams
 
 ```mermaid
 flowchart LR
-    OC[openvpn process] <-->|TLS data channel| OS[remote server]
-    MGMT[management TCP] --- OC
-    uvpn --> MGMT
+    OC[openvpn process] <-->|TLS data channel UDP/TCP| OS[remote server]
+    MGMT[management TCP localhost] --- OC
+    uvpn -->|state status commands| MGMT
+    uvpn --> P[ICMP probes separate path]
 ```
 
 ```mermaid
 stateDiagram-v2
     [*] --> CONNECTING
-    CONNECTING --> CONNECTED
-    CONNECTING --> RECONNECTING
+    CONNECTING --> CONNECTED: management state CONNECTED
+    CONNECTING --> RECONNECTING: link flap
     RECONNECTING --> CONNECTED
-    CONNECTED --> EXITING
-    CONNECTING --> EXITING
+    CONNECTING --> EXITING: fatal error
+    CONNECTED --> EXITING: quit or stop
+    CONNECTING --> SECONDARY: multi-process mode
     EXITING --> [*]
+```
+
+```mermaid
+sequenceDiagram
+    participant U as uvpn adapter
+    participant M as management socket
+    participant O as openvpn
+    U->>M: connect TCP
+    M-->>U: greeting line
+    U->>M: state
+    O-->>M: CONNECTED timestamp
+    M-->>U: state line
+    U->>M: status optional
+    M-->>U: routing byte counters
 ```
 
 ```mermaid
 flowchart LR
     E[MonitorEngine] --> A[openvpn adapter]
-    A --> MGMT[management socket]
-    E --> P[Probes]
-    A --> D[Diagnosis]
+    A -->|requires openvpn_management| MGMT[management socket]
+    A -->|fallback weak| PROC[process grep only]
+    E --> P[ICMP probes]
+    MGMT --> D[Diagnosis]
+    PROC --> D
     P --> D
 ```
 
@@ -165,6 +187,18 @@ OpenVPN 2.4+ with management enabled.
 
 - Management disabled → enable or switch adapter.
 - State CONNECTED + probe fail → `TUNNEL_DOWN`.
+
+---
+
+## Citations
+
+| Topic | Authoritative source |
+|-------|---------------------|
+| Management interface overview | [OpenVPN Management Interface](https://openvpn.net/community-docs/management-interface.html) |
+| Management protocol detail | [management-notes.txt (OpenVPN source)](https://github.com/OpenVPN/openvpn/blob/master/doc/management-notes.txt) |
+| `--management` directive | [management-options.rst](https://github.com/OpenVPN/openvpn/blob/master/doc/man-sections/management-options.rst) |
+
+Manifest: [manifests/openvpn.yaml](manifests/openvpn.yaml)
 
 ---
 

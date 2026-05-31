@@ -1,6 +1,6 @@
 # Maintainer manifests (provenance)
 
-Operator-facing guides under `../` contain **reworded** monitoring-applicable material. These manifests record **which vendor publication** each section was derived from—without external URLs in user documentation.
+Operator-facing guides under `../` contain **reworded** monitoring-applicable material. These manifests record **which vendor publication** each section was derived from, including **`url`** fields used in guide **Citations** sections.
 
 | File | Platform |
 |------|----------|

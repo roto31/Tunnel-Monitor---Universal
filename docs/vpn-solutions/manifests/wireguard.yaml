@@ -3,9 +3,16 @@ pinned_version: "wireguard-tools 1.x"
 sources:
   - id: wg-man-page
     title: "wireguard-tools wg(8) manual"
+    url: "https://manpages.debian.org/testing/wireguard-tools/wg.8.en.html"
     sections: [3]
     last_verified: "2026-05-31"
   - id: wg-protocol
     title: "WireGuard protocol specification"
+    url: "https://www.wireguard.com/protocol/"
     sections: [1]
+    last_verified: "2026-05-31"
+  - id: wg-quick-man
+    title: "wireguard-tools wg-quick(8) manual"
+    url: "https://manpages.debian.org/testing/wireguard-tools/wg-quick.8.en.html"
+    sections: [2]
     last_verified: "2026-05-31"

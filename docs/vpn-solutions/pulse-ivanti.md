@@ -22,6 +22,12 @@ The `pulse` adapter executes `pulselauncher status` (or `pulse_binary`), parses 
 
 ---
 
+## Visual reference
+
+Original topology illustration (uvpn-authored; inspired by Ivanti administration material):
+
+![Ivanti ISAC endpoint-to-gateway topology](assets/pulse-architecture.svg)
+
 ## Diagrams
 
 ### Product architecture
@@ -31,17 +37,19 @@ flowchart LR
     subgraph endpoint [Endpoint]
         ISAC[Ivanti Secure Access Client]
         PL[pulselauncher CLI]
+        TS[Trusted Server policy]
         ISAC --- PL
+        PL --- TS
     end
     subgraph gateway [Ivanti gateway]
-        ICS[Connect Secure]
+        ICS[Connect Secure SSL]
         IPS[Policy Secure L3]
     end
     subgraph corp [Corporate network]
         LAN[Protected resources]
     end
-    ISAC -->|SSL VPN session| ICS
-    ISAC -->|L3 VPN| IPS
+    ISAC -->|L3 or SSL VPN| ICS
+    ISAC --> IPS
     ICS --> LAN
     IPS --> LAN
 ```
@@ -51,28 +59,30 @@ flowchart LR
 ```mermaid
 flowchart TD
     A[Choose deployment] --> B[Default installer]
-    A --> C[Preconfigured package]
-    A --> D[Non-admin installer]
+    A --> C[Preconfigured .pulsepreconfig]
+    A --> D[Non-admin Windows installer]
     B --> E[User adds portal via UI or browser]
-    C --> F[Windows silent install or macOS import]
-    D --> G[Local System service account]
-    E --> H[Client ready]
+    C --> F[msiexec silent or macOS import]
+    D --> G[Local System SCM account]
+    E --> H{Linux Trusted Server?}
     F --> H
     G --> H
+    H -->|approved| I[Client ready]
+    H -->|not listed| J[CLI connect fails exit 2]
 ```
 
 ### Connection lifecycle
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Stopped: client not running
-    Stopped --> Connecting: launcher connect args
-    Connecting --> Connected: success
-    Connecting --> Failed: gateway or auth failure
-    Connected --> Suspended: suspend command
-    Suspended --> Connected: resume command
-    Connected --> Disconnected: sign-out
-    Connected --> Stopped: stop command
+    [*] --> Stopped: service down exit -1
+    Stopped --> Connecting: connect -url -u -p -r
+    Connecting --> Connected: tunnel up exit 0
+    Connecting --> Failed: gateway auth policy exit 2-8
+    Connected --> Suspended: -suspend -url
+    Suspended --> Connected: -resume -url
+    Connected --> Disconnected: -signout -url
+    Connected --> Stopped: -stop all sessions
     Disconnected --> [*]
     Failed --> [*]
 ```
@@ -82,11 +92,14 @@ stateDiagram-v2
 ```mermaid
 flowchart TB
     E[MonitorEngine] --> A[pulse adapter]
-    A -->|status subcommand| CLI[CLI stdout]
-    E --> P[Universal probes]
-    A --> D[Diagnosis]
+    A -->|pulselauncher status| CLI[Parse stdout fields]
+    CLI -->|empty| EC[Supplement exit code]
+    E --> P[ICMP + DDNS probes]
+    CLI --> D[Diagnosis]
+    EC --> D
     P --> D
-    D --> ST[state.json]
+    D -->|Connected + LAN fail| TD[TUNNEL_DOWN split tunnel]
+    D --> ST[state.json + adapter.raw.snippet]
 ```
 
 ---
@@ -326,6 +339,20 @@ uvpn explain
 | CLI not found | Install client; set `pulse_binary` to Linux path above |
 | Connected + LAN down | Expect `TUNNEL_DOWN`; verify routes and split tunnel |
 | Unrecognized status text | Align client with matrix version; capture redacted stdout for maintainers |
+
+---
+
+## Citations
+
+| Topic | Authoritative source |
+|-------|---------------------|
+| Installation overview | [Deploying Ivanti Secure Access Client](https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/installation_overview.htm) |
+| CLI launcher switches and exit codes | [ISAC Command-line Launcher](https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/cli_launcher.htm) |
+| Linux terminal client | [Using ISAC Command Line (Linux QSG)](https://help.ivanti.com/ps/help/en_US/ISAC/vNow/linux-qsg/using-linux-client-command-line.htm) |
+| Preconfigured Windows install | [Installing with preconfiguration file](https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/installing_pdc_on_Windows.htm) |
+| uvpn status contract | [pulse-cli-contract.md](../architecture/pulse-cli-contract.md) (internal) |
+
+Manifest: [manifests/pulse-ivanti.yaml](manifests/pulse-ivanti.yaml)
 
 ---
 
