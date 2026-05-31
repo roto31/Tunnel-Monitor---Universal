@@ -37,6 +37,12 @@ struct StatusContentView: View {
             if !model.presentation.issues.isEmpty {
                 issuesSection
             }
+            if model.presentation.isStateStale {
+                staleStateBanner
+            }
+            if let detail = model.presentation.technicalDetail, !detail.isEmpty {
+                technicalSection(detail: detail, steps: model.presentation.recommendedSteps)
+            }
             checksSection
             dedupSection
             if showActions {
@@ -89,6 +95,11 @@ struct StatusContentView: View {
                         .font(.caption)
                         .foregroundStyle(.red)
                 }
+                if let schema = model.presentation.schemaVersionLabel {
+                    Text("Schema v\(schema)")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
             }
             Spacer()
             Text(model.alertState)
@@ -115,6 +126,39 @@ struct StatusContentView: View {
             }
         }
         .tmGlassCard(tint: .yellow)
+    }
+
+    private var staleStateBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "clock.badge.exclamationmark")
+                .foregroundStyle(.orange)
+            Text("state.json may be stale — try Force Check or verify launchd.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .tmGlassCard(tint: .orange)
+    }
+
+    @ViewBuilder
+    private func technicalSection(detail: String, steps: [String]) -> some View {
+        DisclosureGroup {
+            Text(detail)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if !steps.isEmpty {
+                Text("Suggested steps").font(.caption.bold()).padding(.top, 4)
+                ForEach(Array(steps.enumerated()), id: \.offset) { idx, step in
+                    Text("\(idx + 1). \(step)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } label: {
+            Text("Technical detail")
+                .font(.subheadline.bold())
+        }
+        .tmGlassCard()
     }
 
     @ViewBuilder
@@ -226,8 +270,16 @@ struct StatusContentView: View {
                     Label("SSH Test", systemImage: "key")
                 }
                 .tmGlassActionButton()
+                Button { runAction { Actions.openExplainInTerminal() } } label: {
+                    Label("Explain", systemImage: "text.book.closed")
+                }
+                .tmGlassActionButton()
             }
             HStack(spacing: 8) {
+                Button { runAction { Actions.openPreflightInTerminal() } } label: {
+                    Label("Preflight", systemImage: "checklist")
+                }
+                .tmGlassActionButton()
                 Button { runAction { Actions.resetState() } } label: {
                     Label("Reset State", systemImage: "arrow.counterclockwise")
                 }

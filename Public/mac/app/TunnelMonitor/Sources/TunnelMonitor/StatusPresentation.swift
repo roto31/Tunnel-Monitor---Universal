@@ -36,6 +36,10 @@ struct StatusPresentation: Equatable {
     let downDurationText: String?
     let failureCount: Int
     let alertState: String
+    let technicalDetail: String?
+    let recommendedSteps: [String]
+    let isStateStale: Bool
+    let schemaVersionLabel: String?
 
     static func unavailable(error: String?) -> StatusPresentation {
         let detail = error ?? "Monitor state unavailable"
@@ -45,15 +49,24 @@ struct StatusPresentation: Equatable {
             issues: [StatusIssue(id: "no_state", message: detail, severity: .yellow)],
             downDurationText: nil,
             failureCount: 0,
-            alertState: "UNKNOWN"
+            alertState: "UNKNOWN",
+            technicalDetail: "The menu bar app reads /opt/tunnel-monitor/state.json written by the launchd daemon. If missing, run install.sh and Force Check.",
+            recommendedSteps: [
+                "Confirm launchd job is loaded.",
+                "Run tunnel-check --preflight in Terminal."
+            ],
+            isStateStale: false,
+            schemaVersionLabel: nil
         )
     }
 
-    static func from(snapshot: Snapshot) -> StatusPresentation {
+    static func from(snapshot: Snapshot, readAt: Date = Date()) -> StatusPresentation {
         let light = computeTrafficLight(snapshot: snapshot)
         let issues = buildIssues(snapshot: snapshot, trafficLight: light)
         let reason = humanDiagnosis(snapshot.diagnosis)
         let downText = downDurationText(for: snapshot)
+        let guide = DiagnosisReference.guide(for: snapshot.diagnosis)
+        let stale = snapshot.isStale(relativeTo: readAt)
 
         return StatusPresentation(
             trafficLight: light,
@@ -61,7 +74,11 @@ struct StatusPresentation: Equatable {
             issues: issues,
             downDurationText: light == .red ? downText : (light == .yellow ? downText : nil),
             failureCount: snapshot.failure_count,
-            alertState: snapshot.alert_state
+            alertState: snapshot.alert_state,
+            technicalDetail: guide.technicalDetail,
+            recommendedSteps: guide.steps,
+            isStateStale: stale,
+            schemaVersionLabel: snapshot.schemaVersionLabel
         )
     }
 
@@ -153,7 +170,7 @@ struct StatusPresentation: Equatable {
     }
 
     private static func diagnosisIssueMessage(_ code: String) -> String {
-        humanDiagnosis(code)
+        DiagnosisReference.guide(for: code).summary
     }
 
     private static func downDurationText(for snapshot: Snapshot) -> String? {
