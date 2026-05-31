@@ -1,0 +1,13 @@
+[Unit]
+Description=Run OpenVPN self-recovery every minute (offset from tunnel-monitor)
+Requires=openvpn-recover.service
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=1min
+AccuracySec=30s
+Unit=openvpn-recover.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target

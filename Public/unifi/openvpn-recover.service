@@ -1,0 +1,13 @@
+[Unit]
+Description=OpenVPN tunnel self-recovery (WAN-gated reload)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/data/tunnel-monitor/openvpn-recover.sh
+# Recover script logs failures; do not fail the timer on heal miss
+SuccessExitStatus=0 1
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/roto31/tunnel-monitor-core/schemas/state-lan-client.schema.json",
+  "title": "Tunnel Monitor LAN client state.json",
+  "type": "object",
+  "required": ["timestamp", "alert_state", "failure_count", "checks", "diagnosis"],
+  "properties": {
+    "schema_version": { "type": "integer", "minimum": 1 },
+    "timestamp": { "type": "string" },
+    "alert_state": { "enum": ["UP", "DOWN"] },
+    "failure_count": { "type": "integer", "minimum": 0 },
+    "diagnosis": { "type": "string" },
+    "gateway_dedup": { "$ref": "#/$defs/dedupBlock" },
+    "udr7_dedup": { "$ref": "#/$defs/dedupBlock" },
+    "router_dedup": { "$ref": "#/$defs/dedupBlock" },
+    "checks": { "type": "object" },
+    "last_alert_sent_at": { "type": ["string", "null"] },
+    "last_recovery_sent_at": { "type": ["string", "null"] },
+    "down_since": { "type": ["string", "null"] }
+  },
+  "$defs": {
+    "dedupBlock": {
+      "type": "object",
+      "required": ["reachable"],
+      "properties": {
+        "reachable": { "type": "boolean" },
+        "state": { "type": ["string", "null"] },
+        "checked_at": { "type": ["string", "null"] }
+      }
+    }
+  }
+}
