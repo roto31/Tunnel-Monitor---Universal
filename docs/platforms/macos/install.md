@@ -9,7 +9,7 @@
 ## Install engine
 
 ```bash
-cd universal-vpn-monitor
+cd Tunnel-Monitor---Universal   # repo root
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
@@ -58,4 +58,4 @@ Source: [Cisco Secure Client CLI](https://www.cisco.com/c/en/us/td/docs/security
 
 ## Legacy note
 
-The repository `Public/mac/` bash monitor is **not** the Universal product. Use **uvpn** for platform-agnostic monitoring.
+The archived bash monitor is under `legacy/Public/mac/` — **not** the Universal product. Use **uvpn** for platform-agnostic monitoring.

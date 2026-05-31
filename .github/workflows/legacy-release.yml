@@ -1,4 +1,4 @@
-name: Release macOS app
+name: Legacy Release macOS app (bash stack)
 
 on:
   push:
@@ -66,7 +66,7 @@ jobs:
           security list-keychains -d user -s "${KEYCHAIN}" $(security list-keychains -d user | tr -d '"')
 
       - name: Build .pkg and .app
-        working-directory: Public
+        working-directory: legacy/Public
         run: |
           set -euo pipefail
           VERSION="${{ steps.ver.outputs.version }}" \
@@ -75,7 +75,7 @@ jobs:
             bash build/build-pkg.sh
 
       - name: Package .app zip
-        working-directory: Public/build/dist
+        working-directory: legacy/Public/build/dist
         run: |
           set -euo pipefail
           V="${{ steps.ver.outputs.version }}"
@@ -87,10 +87,10 @@ jobs:
         run: |
           set -euo pipefail
           V="${{ steps.ver.outputs.version }}"
-          PKG="Public/build/dist/Tunnel-Monitor-${V}.pkg"
-          ZIP="Public/build/dist/Tunnel-Monitor-${V}-macOS.app.zip"
+          PKG="legacy/Public/build/dist/Tunnel-Monitor-${V}.pkg"
+          ZIP="legacy/Public/build/dist/Tunnel-Monitor-${V}-macOS.app.zip"
           shopt -s nullglob
-          CHECKSUMS=(Public/build/releases/*-v"${V}"/CHECKSUMS.sha256)
+          CHECKSUMS=(legacy/Public/build/releases/*-v"${V}"/CHECKSUMS.sha256)
           if [[ ! -f "${PKG}" ]]; then
             echo "ERROR: missing ${PKG}" >&2
             exit 1
@@ -112,9 +112,9 @@ jobs:
         with:
           name: tunnel-monitor-macos-${{ steps.ver.outputs.version }}
           path: |
-            Public/build/dist/Tunnel-Monitor-*.pkg
-            Public/build/dist/Tunnel-Monitor-*-macOS.app.zip
-            Public/build/releases/**/CHECKSUMS.sha256
+            legacy/Public/build/dist/Tunnel-Monitor-*.pkg
+            legacy/Public/build/dist/Tunnel-Monitor-*-macOS.app.zip
+            legacy/Public/build/releases/**/CHECKSUMS.sha256
 
       - name: Create GitHub Release
         if: github.ref_type == 'tag'

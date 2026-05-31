@@ -1,54 +1,58 @@
 # macOS
 .DS_Store
 
-# Private / production operator docs (not for public repos)
+# Python / uvpn
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.build/
+
+# Private operator docs (not for public repos)
+Private/
 internal/
 private-docs-repo/
 private-docs-wiki/
 tunnel-monitor-cursor-prompt/
 
-# Legacy mirrors at repo root only (canonical: Public/mac/payload, adapters/)
-/opt/
-/payload/
-
 # Secrets
 **/config.env
 !**/config.env.template
 
-# Nested clone metadata (Public is part of this monorepo)
-Public/.git/
+# Legacy nested clone metadata
+legacy/Public/.git/
 
 # Swift / SPM build artifacts
-app/TunnelMonitor/.build/
-app/TunnelMonitor/.swiftpm/
-app/TunnelMonitor/Package.resolved
+apps/macos/**/.build/
+apps/macos/**/.swiftpm/
+apps/macos/**/Package.resolved
+legacy/app/TunnelMonitor/.build/
+legacy/app/TunnelMonitor/.swiftpm/
+legacy/Public/mac/app/TunnelMonitor/.build/
+legacy/Public/mac/app/TunnelMonitor/.swiftpm/
+legacy/Public/mac/app/TunnelMonitorXcode/
 
-# Build outputs
-build/dist/
-build/dist-public/
-build/releases/*/
-!build/releases/README.md
-build/.stage/
-build/.scripts/
-build/.component.pkg
-build/.distribution.rendered.xml
-build/icon-compile/
-build/icon-raster/
-build/icon-test/
-build/xcode-build/
+# Legacy build outputs
+legacy/build/dist/
+legacy/build/dist-public/
+legacy/build/releases/*/
+!legacy/build/releases/README.md
+legacy/build/.stage/
+legacy/Public/build/dist/
+legacy/Public/build/.stage/
 
-# Public app SPM artifacts
-Public/mac/app/TunnelMonitor/.build/
-Public/mac/app/TunnelMonitor/.swiftpm/
-Public/mac/app/TunnelMonitor/Package.resolved
-Public/mac/app/TunnelMonitorXcode/
+# .NET tray app build artifacts
+legacy/Public/tray-app/**/bin/
+legacy/Public/tray-app/**/obj/
 
 # Editor noise
 *.swp
 *~
 
-# .NET tray app build artifacts
-Public/tray-app/**/bin/
-Public/tray-app/**/obj/
-tray-app/**/bin/
-tray-app/**/obj/
+# Temp
+universal-vpn-monitor-gitignore.tmp
+.wiki-publish/
+legacy/Public/builds/

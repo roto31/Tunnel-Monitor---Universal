@@ -1,72 +1,97 @@
-# Tunnel Monitor — Universal (v2)
+# Universal VPN Monitor (uvpn)
 
-> **Important:** The **Universal VPN Monitor** product is the greenfield Python stack in [`universal-vpn-monitor/`](universal-vpn-monitor/README.md) (`uvpn`). See [`UNIVERSAL.md`](UNIVERSAL.md).
->
-> The paths below (`Public/`, bash `vendor/core/`) are the **legacy** site-specific monitor — not platform-agnostic Universal.
+Platform-agnostic **point-to-point VPN monitoring** for Linux servers and macOS desktops.
 
-Portable site-to-site VPN health monitoring with a shared **tunnel-monitor-core** engine and platform **adapters** (legacy bash).
+Monitor **any** site-to-site or routed P2P VPN — OpenVPN, WireGuard, IPsec/IKEv2, Cisco AnyConnect, or unknown types via generic reachability probes. One Python engine powers **CLI**, **universal terminal (TUI)**, **Linux GTK GUI**, and **macOS Swift GUI** with equivalent capabilities.
 
-## Architecture
-
-- **`vendor/core/`** — bash engine (diagnosis tree, state machine, dedup, `state.json` v2)
-- **`adapters/`** — UniFi gateway, generic Linux gateway, macOS/Linux LAN clients
-- **`Public/`** — sanitized deployable bundles (mac, linux, unifi, docs, tray-app)
-- **`tunnel-monitor-core/`** — publish tree for standalone core releases
-- **`scripts/`** — `install-core.sh`, `vendor-core.sh`
-
-See [`vendor/core/CONTRACT.md`](vendor/core/CONTRACT.md) and [`docs/v2/CONVERGENCE.md`](docs/v2/CONVERGENCE.md).
+> **Legacy:** The bash UniFi/site-specific stack (`legacy/Public/`, `legacy/vendor/core/`) is archived under [`legacy/`](legacy/README.md). It is **not** the Universal product.
 
 ## Quick start
 
-**Mac LAN client**
-
 ```bash
-cd Public/mac
-sudo bash install.sh
-sudo nano /opt/tunnel-monitor/config.env
-tunnel-check --test-email
+git clone https://github.com/roto31/Tunnel-Monitor---Universal.git
+cd Tunnel-Monitor---Universal
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+uvpn init-config
+${EDITOR:-nano} ~/.config/uvpn/config.json
+uvpn preflight && uvpn check && uvpn explain
 ```
 
-**UniFi gateway**
+Interactive terminal menu:
 
 ```bash
-cd adapters/unifi-gateway
-# copy to router, then on gateway:
-bash install.sh
+bash scripts/uvpn-tui
 ```
 
-**Generic Linux gateway**
+## Interfaces
 
-```bash
-cd adapters/generic-linux-gateway
-sudo bash install.sh
+| Interface | Command | Technology |
+|-----------|---------|------------|
+| CLI | `uvpn check`, `uvpn status`, `uvpn explain` | Python 3.11+ |
+| Universal terminal | `bash scripts/uvpn-tui` | Bash menu → Python engine |
+| Linux GUI | `python3 apps/linux/uvpn_gui.py` | GTK4; falls back to TUI |
+| macOS GUI | `apps/macos/UniversalVPNMonitor` | Swift menu bar; reads shared `state.json` |
+
+All interfaces use **`uvpn.core.engine.MonitorEngine`**. GUIs read `~/.config/uvpn/state.json` written atomically by the engine.
+
+## Supported VPN adapters (v0.1)
+
+| `vpn_type` | Adapter | Verification source |
+|------------|---------|---------------------|
+| `generic` | ICMP/DDNS reachability only | Any routed P2P VPN |
+| `openvpn` | Management socket / process | [OpenVPN management interface](https://openvpn.net/community-docs/management-interface.html) |
+| `wireguard` | `wg show` | [wg(8)](https://manpages.debian.org/bookworm/wireguard-tools/wg.8.en.html) |
+| `ipsec` / `ikev2` | `swanctl` or `ipsec` | [strongSwan swanctl](https://docs.strongswan.org/docs/latest/swanctl/swanctl.html) |
+| `cisco_anyconnect` | `vpn state` CLI | [Cisco Secure Client admin guide](https://www.cisco.com/c/en/us/td/docs/security/vpn_client/anyconnect/Cisco-Secure-Client-5/admin/guide/b-cisco-secure-client-admin-guide-5-0/customize-localize-anyconnect.html) |
+
+Roadmap: FortiClient, GlobalProtect, Pulse — see [architecture](docs/architecture.md#7-extensibility-roadmap).
+
+## Repository layout
+
 ```
-
-## Releases (macOS GUI + pkg)
-
-Download builds from **[GitHub Releases](https://github.com/roto31/Tunnel-Monitor---Universal/releases)**.
-
-| Artifact | Use |
-|----------|-----|
-| `Tunnel-Monitor-<version>.pkg` | Full install (app + launchd + payload) |
-| `Tunnel-Monitor-<version>-macOS.app.zip` | Menu bar app only |
-
-See [`RELEASES.md`](RELEASES.md) and [`CHANGELOG.md`](CHANGELOG.md). Maintainer guide: [`RELEASING.md`](RELEASING.md).
-
-GUI operator features (v2.0.1+): [`Public/docs/v2/gui-operator-features.md`](Public/docs/v2/gui-operator-features.md).
-
-## Versioning
-
-- Core: `vendor/core/VERSION` (pinned in [`bundle-manifest.json`](bundle-manifest.json) as `coreVersion`)
-- Consumer artifact: `artifactVersion` in bundle manifest
-
-## Tests
-
-```bash
-bats vendor/core/tests/
-bash scripts/vendor-core.sh verify
+├── uvpn/              Python package (engine, adapters, CLI)
+├── apps/
+│   ├── linux/         GTK4 GUI
+│   └── macos/         Swift menu bar app
+├── scripts/           uvpn wrapper, uvpn-tui
+├── docs/              Architecture, research, platform & adapter guides
+├── tests/
+├── wiki/              GitHub wiki source
+├── legacy/            Archived bash tunnel-monitor v2 (UniFi-oriented)
+└── .github/workflows/ CI and release automation
 ```
 
 ## Documentation
 
-Public operator docs: [`Public/docs/`](Public/docs/) and [`Public/README.md`](Public/README.md).
+| Topic | Path |
+|-------|------|
+| Architecture (Mermaid) | [docs/architecture.md](docs/architecture.md) |
+| VPN platform research (cited) | [docs/research/vpn-platforms.md](docs/research/vpn-platforms.md) |
+| Linux install | [docs/platforms/linux/install.md](docs/platforms/linux/install.md) |
+| macOS install | [docs/platforms/macos/install.md](docs/platforms/macos/install.md) |
+| CLI / TUI / GUI | [docs/interfaces/](docs/interfaces/) |
+| Per-VPN setup | [docs/adapters/](docs/adapters/) |
+| Troubleshooting | [docs/troubleshooting.md](docs/troubleshooting.md) |
+| Wiki | [GitHub Wiki](https://github.com/roto31/Tunnel-Monitor---Universal/wiki) |
+| Legacy bash monitor | [legacy/README.md](legacy/README.md) |
+
+## Development
+
+```bash
+pip install -e ".[dev]"
+pytest -q
+bash scripts/uvpn-tui
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Releases
+
+uvpn releases: [GitHub Releases](https://github.com/roto31/Tunnel-Monitor---Universal/releases) — see [RELEASES.md](RELEASES.md).
+
+Legacy macOS `.pkg` builds (bash stack): [legacy/RELEASES.md](legacy/RELEASES.md).
+
+## License
+
+MIT — see [LICENSE](LICENSE).

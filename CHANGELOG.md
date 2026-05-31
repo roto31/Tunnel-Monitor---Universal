@@ -1,63 +1,30 @@
-# Changelog
+# Changelog — Universal VPN Monitor (uvpn)
 
-All notable changes to the **Tunnel Monitor — Universal** macOS distribution
-(`Tunnel Monitor.app` + `Tunnel-Monitor.pkg` + launchd payload).
+All notable changes to the **uvpn** Python product at the repository root.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning follows [SemVer](https://semver.org/).
 
-## [2.0.1] — 2026-05-31
+Legacy bash monitor history: [legacy/CHANGELOG-legacy.md](legacy/CHANGELOG-legacy.md).
 
-### Code
+## [0.1.0] — 2026-05-31
 
-- **GUI:** `DiagnosisReference` runbooks in popover (*Technical detail* + suggested steps).
-- **GUI:** Stale `state.json` banner when last check &gt; 12 minutes.
-- **GUI:** Schema version label; **Explain** / **Preflight** actions.
-- **CLI:** `tunnel-check --explain` and `--preflight` via `vendor/core/lib/operator-explain.sh`.
-- **CLI:** `tunnel-check` shows `gateway_dedup` with legacy fallback and schema version.
+### Added
 
-### Data
+- **Core:** `MonitorEngine` with universal ICMP/DDNS probes and atomic `state.json` writes.
+- **Adapters:** OpenVPN, WireGuard, IPsec/IKEv2 (strongSwan), Cisco AnyConnect, generic reachability.
+- **Diagnosis:** HEALTHY, TUNNEL_DOWN, REMOTE_INTERNET_DOWN, DDNS_DRIFT, OUR_INTERNET_DOWN, VPN_DAEMON_DOWN, VPN_NEGOTIATION_FAILED, UNSUPPORTED_VPN_TYPE.
+- **Interfaces:** Python CLI (`uvpn`), bash TUI (`uvpn-tui`), Linux GTK4 GUI scaffold, macOS Swift menu bar reader.
+- **Docs:** Architecture (Mermaid), cited VPN platform research, per-adapter and per-platform guides.
+- **CI:** `uvpn-ci.yml` — pytest + Swift build on macOS.
 
-- `dataRevision`: `gui-runbooks-v1` (see `Public/datasets/bundle-manifest.json`).
+### Changed
 
-## [2.0.0] — 2026-05-31
-
-### Code
-
-- **tunnel-monitor-core v2** — shared `monitor-engine.sh` with `gateway` and `lan_client` roles.
-- Canonical diagnosis enum including `GATEWAY_UNREACHABLE` (replaces `UDR7_*` / `ROUTER_*` emit paths).
-- LAN client `state.json` **schema v2** with `gateway_dedup` (legacy keys dual-written).
-- Adapters: UniFi gateway, generic Linux gateway, macOS/Linux LAN clients.
-- Swift menu bar app decodes `gateway_dedup` with v1 fallback.
-
-### Data
-
-- `wizard-fields.json`: `GATEWAY_*` keys and aliases for setup wizard.
-- `dataRevision`: `gateway-v2` (see `Public/datasets/bundle-manifest.json`).
+- **Repository layout:** uvpn promoted to root; legacy bash stack moved to `legacy/`.
+- **Product definition:** "Universal" now means platform-agnostic Python uvpn, not renamed bash fork.
 
 ### Build / CI
 
-- GitHub Actions release workflow builds `.pkg` + `.app` zip on version tags.
-- Release artifacts archived under `Public/build/releases/03-v2.0.0/`.
+- Legacy release workflow paths updated to `legacy/Public/`.
 
-### Install
-
-- **Recommended:** download `Tunnel-Monitor-2.0.0.pkg` from [Releases](https://github.com/roto31/Tunnel-Monitor---Universal/releases).
-- Configure `/opt/tunnel-monitor/config.env` after install (see wiki [Configuration](https://github.com/roto31/Tunnel-Monitor---Universal/wiki/Configuration)).
-
-## [1.1.0] — 2026-05-31
-
-### Data
-
-- Liquid Glass UI assets (`Assets.car`, actool icon pipeline).
-
-## [1.0.0] — 2026-05-12
-
-### Code
-
-- Initial public macOS menu bar app + launchd monitor.
-
-[2.0.1]: https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/v2.0.1
-[2.0.0]: https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/v2.0.0
-[1.1.0]: https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/v1.1.0
-[1.0.0]: https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/v1.0.0
+[0.1.0]: https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/uvpn-v0.1.0

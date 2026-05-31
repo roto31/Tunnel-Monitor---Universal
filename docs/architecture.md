@@ -145,17 +145,17 @@ This matches operational reality: [RFC 4271 BGP-style reachability](https://www.
 ## 6. Repository layout
 
 ```
-universal-vpn-monitor/
-  uvpn/                 # Python package (engine + adapters + CLI)
-  scripts/              # uvpn, uvpn-tui shell entrypoints
-  apps/linux/           # GTK GUI
-  apps/macos/           # Swift GUI
-  docs/                 # architecture, research, platform guides
-  tests/
-  wiki/                 # GitHub wiki source
+├── uvpn/                 # Python package (engine + adapters + CLI)
+├── scripts/              # uvpn, uvpn-tui shell entrypoints
+├── apps/linux/           # GTK GUI
+├── apps/macos/           # Swift GUI
+├── docs/                 # architecture, research, platform guides
+├── tests/
+├── wiki/                 # GitHub wiki source
+└── legacy/               # Archived bash monitor (UniFi-oriented)
 ```
 
-Legacy bash monitor lives at repo root (`Public/`, `vendor/core/`) — **deprecated path** for Universal product goals.
+The **Universal product** is the root tree above. Legacy bash monitor lives under `legacy/` — not used for new Universal deployments.
 
 ---
 

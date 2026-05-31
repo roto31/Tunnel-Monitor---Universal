@@ -1,30 +1,27 @@
-# Universal VPN Monitor — product definition
+# Product definition
 
-The **Universal** product is **`universal-vpn-monitor/`** (Python core **uvpn**).
+**Universal VPN Monitor (uvpn)** lives at the **repository root**.
 
-It monitors **any point-to-point VPN** where a host can:
+It monitors any point-to-point VPN where a host can:
 
-1. Run protocol-specific checks via **adapters** (OpenVPN, WireGuard, IPsec, Cisco AnyConnect, …), and  
-2. Run **universal reachability probes** (ping remote LAN, remote WAN, DDNS) independent of vendor.
+1. Run **protocol adapters** (OpenVPN, WireGuard, IPsec, Cisco AnyConnect, …), and  
+2. Run **universal reachability probes** (ICMP, DDNS) independent of vendor.
 
-## What Universal is NOT
+## Interfaces
 
-| Path | Status |
-|------|--------|
-| `Public/` + bash `vendor/core/` | **Legacy** UniFi/site-specific monitor — kept for backward compatibility |
-| Previous “Universal” GitHub fork | Was a **rename** of the bash stack — **incorrect** product definition |
+| Interface | Path |
+|-----------|------|
+| CLI | `uvpn` / `scripts/uvpn` |
+| Universal terminal | `scripts/uvpn-tui` |
+| Linux GUI | `apps/linux/uvpn_gui.py` |
+| macOS GUI | `apps/macos/UniversalVPNMonitor/` |
 
-## Interfaces (equivalent capabilities)
+## Legacy
 
-- **CLI:** `uvpn` (Python)
-- **Universal terminal:** `uvpn-tui` (shell menu)
-- **Linux GUI:** GTK4 (`apps/linux/uvpn_gui.py`)
-- **macOS GUI:** Swift (`apps/macos/UniversalVPNMonitor/`)
+The bash UniFi/site-specific stack is under [`legacy/`](legacy/README.md).
+
+Previous GitHub "Universal" naming referred to that bash fork — **incorrect** for platform-agnostic goals.
 
 ## Start here
 
-[universal-vpn-monitor/README.md](universal-vpn-monitor/README.md)
-
-## Architecture
-
-[universal-vpn-monitor/docs/architecture.md](universal-vpn-monitor/docs/architecture.md)
+[README.md](README.md)

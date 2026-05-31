@@ -1,13 +1,13 @@
-name: tunnel-monitor-core CI
+name: legacy tunnel-monitor-core CI
 
 on:
   push:
     paths:
-      - 'vendor/core/**'
+      - 'legacy/vendor/core/**'
       - '.github/workflows/core-ci.yml'
   pull_request:
     paths:
-      - 'vendor/core/**'
+      - 'legacy/vendor/core/**'
 
 permissions:
   contents: read
@@ -16,10 +16,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@v4
       - name: Install bats
         run: sudo apt-get update && sudo apt-get install -y bats shellcheck jq
       - name: Shellcheck core lib
-        run: shellcheck vendor/core/lib/*.sh vendor/core/bin/monitor-engine.sh
+        run: shellcheck legacy/vendor/core/lib/*.sh legacy/vendor/core/bin/monitor-engine.sh
       - name: Bats tests
-        run: bats vendor/core/tests/
+        run: bats legacy/vendor/core/tests/
