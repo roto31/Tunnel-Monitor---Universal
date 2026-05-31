@@ -3,11 +3,16 @@ name: tunnel-monitor-core CI
 on:
   push:
     paths:
-      - 'vendor/core/**'
+      - 'Universal/vendor/core/**'
+      - 'Universal/scripts/**'
       - '.github/workflows/core-ci.yml'
+      - '.cursor/**'
   pull_request:
     paths:
-      - 'vendor/core/**'
+      - 'Universal/vendor/core/**'
+      - 'Universal/scripts/**'
+      - '.github/workflows/core-ci.yml'
+      - '.cursor/**'
 
 permissions:
   contents: read
@@ -20,6 +25,8 @@ jobs:
       - name: Install bats
         run: sudo apt-get update && sudo apt-get install -y bats shellcheck jq
       - name: Shellcheck core lib
-        run: shellcheck vendor/core/lib/*.sh vendor/core/bin/monitor-engine.sh
+        run: shellcheck Universal/vendor/core/lib/*.sh Universal/vendor/core/bin/monitor-engine.sh
       - name: Bats tests
-        run: bats vendor/core/tests/
+        run: bats Universal/vendor/core/tests/
+      - name: Validate folder structure
+        run: TM_STRUCTURE_STRICT=1 bash Universal/scripts/validate-folder-structure.sh

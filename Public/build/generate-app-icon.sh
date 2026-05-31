@@ -4,7 +4,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-RES_DIR="${ROOT_DIR}/app/TunnelMonitor/Resources"
+RES_DIR="${ROOT_DIR}/mac/app/TunnelMonitor/Resources"
 MASTER="${RES_DIR}/AppIcon-1024.png"
 ICONSET="${RES_DIR}/AppIcon.iconset"
 ICNS="${RES_DIR}/AppIcon.icns"

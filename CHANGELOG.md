@@ -23,8 +23,9 @@ Versioning follows [SemVer](https://semver.org/).
 
 ### Build / CI
 
-- GitHub Actions release workflow builds `.pkg` + `.app` zip on version tags.
-- Release artifacts archived under `Public/build/releases/03-v2.0.0/`.
+- Monorepo reorganized into `Private/`, `Public/`, `Universal/`; docs and wiki moved under category folders (`Private/docs/`, `Public/wiki/`, `Universal/docs/wiki/`).
+- Added folder-structure rule, skill, and `Universal/scripts/validate-folder-structure.sh`.
+- Release artifacts archived under `Public/builds/releases/03-v2.0.0/`.
 
 ### Install
 

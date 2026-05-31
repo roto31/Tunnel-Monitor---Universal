@@ -35,7 +35,7 @@ shasum -a 256 -c CHECKSUMS.sha256
 
 ### Not in this release
 
-- UniFi gateway adapter (copy from `adapters/unifi-gateway/` manually)
+- UniFi gateway adapter (copy from `Universal/adapters/unifi-gateway/` manually)
 - Generic Linux gateway (see wiki)
 - Windows LAN client (see `Public/windows/`)
 - Notarized/signed build unless release notes say otherwise

@@ -90,7 +90,7 @@ jobs:
           PKG="Public/build/dist/Tunnel-Monitor-${V}.pkg"
           ZIP="Public/build/dist/Tunnel-Monitor-${V}-macOS.app.zip"
           shopt -s nullglob
-          CHECKSUMS=(Public/build/releases/*-v"${V}"/CHECKSUMS.sha256)
+          CHECKSUMS=(Public/builds/releases/*-v"${V}"/CHECKSUMS.sha256)
           if [[ ! -f "${PKG}" ]]; then
             echo "ERROR: missing ${PKG}" >&2
             exit 1
@@ -114,7 +114,7 @@ jobs:
           path: |
             Public/build/dist/Tunnel-Monitor-*.pkg
             Public/build/dist/Tunnel-Monitor-*-macOS.app.zip
-            Public/build/releases/**/CHECKSUMS.sha256
+            Public/builds/releases/**/CHECKSUMS.sha256
 
       - name: Create GitHub Release
         if: github.ref_type == 'tag'

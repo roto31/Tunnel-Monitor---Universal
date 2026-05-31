@@ -116,9 +116,9 @@ fi
 
 MONOREPO_ROOT="$(cd "${REPO_DIR}/../.." && pwd)"
 # shellcheck source=../../scripts/install-core.sh
-source "${MONOREPO_ROOT}/scripts/install-core.sh"
+source "${MONOREPO_ROOT}/Universal/scripts/install-core.sh"
 install_tunnel_monitor_core "${INSTALL_DIR}" "${MONOREPO_ROOT}"
-install_lan_adapter "${INSTALL_DIR}" "${MONOREPO_ROOT}/adapters/lan-client-linux"
+install_lan_adapter "${INSTALL_DIR}" "${MONOREPO_ROOT}/Universal/adapters/lan-client-linux"
 green "Installed tunnel-monitor-core $(cat "${INSTALL_DIR}/core.version" 2>/dev/null || echo unknown)"
 
 install_file "${SRC_OPT}/config.env.template" "${INSTALL_DIR}/config.env.template" 0644

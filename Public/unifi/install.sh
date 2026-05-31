@@ -22,9 +22,9 @@ install -m 0755 "${SOURCE_DIR}/tunnel-check"        "${TARGET_DIR}/tunnel-check"
 
 # tunnel-monitor-core + gateway adapter (bundled from monorepo when present)
 MONOREPO_ROOT="$(cd "${SOURCE_DIR}/../.." && pwd)"
-if [[ -f "${MONOREPO_ROOT}/scripts/install-core.sh" ]]; then
-    # shellcheck source=../../scripts/install-core.sh
-    source "${MONOREPO_ROOT}/scripts/install-core.sh"
+if [[ -f "${MONOREPO_ROOT}/Universal/scripts/install-core.sh" ]]; then
+    # shellcheck source=../../Universal/scripts/install-core.sh
+    source "${MONOREPO_ROOT}/Universal/scripts/install-core.sh"
     install_tunnel_monitor_core "${TARGET_DIR}" "${MONOREPO_ROOT}"
     install_gateway_adapter "${TARGET_DIR}" "${SOURCE_DIR}"
 elif [[ -d "${SOURCE_DIR}/vendor/core" ]]; then

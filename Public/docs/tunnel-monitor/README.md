@@ -38,5 +38,5 @@ End-to-end guide for the **Tunnel Monitor** macOS stack: a LaunchDaemon that wat
 ## Out of scope for this hub
 
 - Full rewrite of all legacy architecture/troubleshooting pages (this hub links to them).  
-- Automatic wiki publishing (sync [`.wiki-uni-tunnel-monitor/`](https://github.com/roto31/UniFi-Tunnel-Monitor/wiki) manually if needed).  
+- Automatic wiki publishing (sync [`Public/wiki/`](../wiki/) manually if needed).  
 - Notarization and codesigning detail (see wiki **Build and Release** only).

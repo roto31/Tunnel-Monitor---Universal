@@ -145,11 +145,12 @@ for f in monitor.sh notify.sh send-email.sh "${SSH_STATE_SCRIPT}" ssh-gateway-st
 done
 
 MONOREPO_ROOT="$(cd "${ROOT_DIR}/.." && pwd)"
-if [[ -f "${MONOREPO_ROOT}/scripts/install-core.sh" ]]; then
-    # shellcheck source=../scripts/install-core.sh
-    source "${MONOREPO_ROOT}/scripts/install-core.sh"
+UNIVERSAL_ROOT="${MONOREPO_ROOT}/Universal"
+if [[ -f "${UNIVERSAL_ROOT}/scripts/install-core.sh" ]]; then
+    # shellcheck source=../../Universal/scripts/install-core.sh
+    source "${UNIVERSAL_ROOT}/scripts/install-core.sh"
     install_tunnel_monitor_core "${STAGE_DIR}/opt/tunnel-monitor" "${MONOREPO_ROOT}"
-    install_lan_adapter "${STAGE_DIR}/opt/tunnel-monitor" "${MONOREPO_ROOT}/adapters/lan-client-macos"
+    install_lan_adapter "${STAGE_DIR}/opt/tunnel-monitor" "${UNIVERSAL_ROOT}/adapters/lan-client-macos"
 fi
 
 if [[ -d "${PAYLOAD_DIR}/opt/tunnel-monitor/adapter" ]]; then
@@ -265,7 +266,7 @@ fi
 rm -rf "${STAGE_DIR}" "${SCRIPTS_STAGE}" "${COMPONENT_PKG}" "${RENDERED_DIST}"
 
 if [[ "${ARCHIVE_RELEASE:-1}" == "1" ]] && [[ -x "${ROOT_DIR}/build/archive-release.sh" ]]; then
-    step "Phase 9 — archive to build/releases/"
+    step "Phase 9 — archive to builds/releases/"
     bash "${ROOT_DIR}/build/archive-release.sh" \
         --version "${VERSION}" \
         --app "${APP_BUNDLE}" \
