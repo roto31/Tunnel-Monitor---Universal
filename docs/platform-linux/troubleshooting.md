@@ -32,27 +32,27 @@ Run `uvpn explain` for runbook steps matching the last diagnosis.
 - Enable management interface: `management localhost 7505` in server/client config.
 - Set `openvpn_management_host` / `openvpn_management_port` in config.
 
-See [adapters/openvpn.md](adapters/openvpn.md).
+See [OpenVPN guide](../vpn-solutions/openvpn.md).
 
 ### WireGuard
 
 - Requires `wg` in PATH and correct `wireguard_interface` (e.g. `wg0`).
 
-See [adapters/wireguard.md](adapters/wireguard.md).
+See [WireGuard guide](../vpn-solutions/wireguard.md).
 
 ### IPsec / IKEv2
 
 - strongSwan: `swanctl --list-sas` must show active CHILD_SA.
 - Legacy starter: `ipsec statusall`.
 
-See [adapters/ipsec.md](adapters/ipsec.md).
+See [IPsec / IKEv2 guide](../vpn-solutions/ipsec-ikev2.md).
 
 ### Cisco AnyConnect
 
 - Requires `vpn` CLI from Cisco Secure Client.
 - Run as user with active VPN profile.
 
-See [adapters/cisco-anyconnect.md](adapters/cisco-anyconnect.md).
+See [Cisco AnyConnect guide](../vpn-solutions/cisco-anyconnect.md).
 
 ## GUI issues
 
@@ -63,7 +63,7 @@ Install `python3-gi` and `gir1.2-gtk-4.0`, or use `bash scripts/uvpn-tui`.
 ### macOS menu bar shows stale data
 
 - Run `uvpn check` manually or click **Refresh** in the menu.
-- State older than 12 minutes may indicate no scheduled checks — add launchd timer (see [platforms/macos/install.md](platforms/macos/install.md)).
+- State older than 12 minutes may indicate no scheduled checks — add launchd timer (see [macOS installation](../platform-macos/installation.md) or [scheduling](../deploy/scheduling.md)).
 
 ## Permissions
 

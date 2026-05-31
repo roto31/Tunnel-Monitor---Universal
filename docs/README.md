@@ -42,6 +42,8 @@
 - [palo-alto-globalprotect.md](vpn-solutions/palo-alto-globalprotect.md)
 - [pulse-ivanti.md](vpn-solutions/pulse-ivanti.md)
 
+Legacy path `docs/adapters/` redirects here.
+
 ## Releases
 
 - [../RELEASING.md](../RELEASING.md) — tagging, CI, checklist

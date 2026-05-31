@@ -24,7 +24,7 @@ pip install -e ".[dev,linux-gui]"
 1. Subclass `uvpn.adapters.base.VpnAdapter` in `uvpn/adapters/`.
 2. Register in `uvpn/adapters/registry.py`.
 3. Add cited documentation in `docs/research/vpn-platforms.md`.
-4. Add setup guide in `docs/adapters/<name>.md`.
+4. Add setup guide in `docs/vpn-solutions/<name>.md`.
 5. Add tests if diagnosis logic is adapter-specific.
 
 Adapters must return `AdapterStatus` without raising — the engine always completes a check cycle.
