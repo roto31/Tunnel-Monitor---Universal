@@ -26,7 +26,7 @@ The `pulse` adapter executes `pulselauncher status` (or `pulse_binary`), parses 
 
 Original topology illustration (uvpn-authored; inspired by Ivanti administration material):
 
-![Ivanti ISAC endpoint-to-gateway topology](assets/pulse-architecture.svg)
+![Ivanti ISAC endpoint-to-gateway topology](assets/pulse-architecture.png)
 
 ## Diagrams
 

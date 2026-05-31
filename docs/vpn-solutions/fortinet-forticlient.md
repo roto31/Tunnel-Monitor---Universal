@@ -22,7 +22,7 @@ Parses VPN status text from **`forticlient vpn status`** on Linux or **`FortiVPN
 
 ## Visual reference
 
-![FortiClient endpoint VPN topology](assets/fortinet-architecture.svg)
+![FortiClient endpoint VPN topology](assets/fortinet-architecture.png)
 
 ## Diagrams
 

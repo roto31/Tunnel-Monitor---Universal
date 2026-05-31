@@ -6,7 +6,7 @@ Each guide incorporates **monitoring-applicable** product documentation in rewor
 |---------|---------|
 | **uvpn at a glance** | Adapter id, monitoring approach |
 | **Incorporated reference map** | Which product manual sections are reflected (manifest ids) |
-| **Visual reference** | Original topology illustration (`assets/*.svg`) |
+| **Visual reference** | Original topology illustration (`assets/*.png`; SVG sources alongside) |
 | **Diagrams** | Mermaid — architecture, lifecycle, uvpn monitoring flow |
 | **1–9 Product guide (incorporated)** | Install, CLI, lifecycle, auth, logging, exit codes, troubleshooting — reworded |
 | **uvpn configuration** | `config.json` example |

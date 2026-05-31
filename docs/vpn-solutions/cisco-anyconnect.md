@@ -21,7 +21,7 @@ Invokes **`vpn state`** (and **`vpn stats`** for statistics) on the Secure Clien
 
 ## Visual reference
 
-![Cisco Secure Client SSL VPN topology](assets/cisco-architecture.svg)
+![Cisco Secure Client SSL VPN topology](assets/cisco-architecture.png)
 
 ## Diagrams
 
