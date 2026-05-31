@@ -1,5 +1,14 @@
 # Documentation index
 
+**Writers:** Start with [brand/narrative-and-voice.md](brand/narrative-and-voice.md) for tone, personas, and fact-vs-fiction rules.
+
+## Brand
+
+| Document | Description |
+|----------|-------------|
+| [narrative-and-voice.md](brand/narrative-and-voice.md) | Backstory, audiences, voice principles |
+| [messaging-snippets.md](brand/messaging-snippets.md) | Reusable copy blocks |
+
 ## Architecture
 
 | Document | Description |

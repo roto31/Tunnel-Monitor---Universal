@@ -1,6 +1,8 @@
 # uvpn troubleshooting index
 
-Dual-audience runbooks modeled after [legacy/Public/docs/troubleshooting.md](../legacy/Public/docs/troubleshooting.md): **quick steps** for operators, **technical depth** for engineers.
+Most VPN outages are not dramatic—they are **misleading**. The icon is green, the share does not open, and everyone argues about Wi‑Fi. These runbooks separate *what the client says* from *what actually answers*, with flowcharts you can follow at 11 p.m. without a NOC.
+
+Dual-audience format modeled after [legacy/Public/docs/troubleshooting.md](../legacy/Public/docs/troubleshooting.md): **quick steps** for operators, **technical depth** for engineers. Tone: [brand/narrative-and-voice.md](../brand/narrative-and-voice.md).
 
 ## Universal (all `vpn_type` values)
 

@@ -1,5 +1,7 @@
 # VPN solution guides — uniform layout
 
+Your organization picked a VPN product; uvpn does not replace it—it **listens** to it. Each guide below rewords vendor material you already have into what matters for monitoring: install paths, CLI status commands, and the gap between “connected” and “I can reach the thing I need.”
+
 Each guide incorporates **monitoring-applicable** product documentation in reworded form. **Vendor citations** (URLs) appear only in the **Citations** section at the bottom of each guide and in `manifests/*.yaml` for maintainers.
 
 | Section | Purpose |

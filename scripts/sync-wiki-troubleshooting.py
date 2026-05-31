@@ -33,6 +33,8 @@ LINKS: dict[str, str] = {
     "../legacy/Public/docs/troubleshooting.md": "Troubleshooting-Legacy-Public",
     "../deploy/scheduling.md": "Scheduling",
     "../platform-linux/gui-setup.md": "Linux-GUI",
+    "../brand/narrative-and-voice.md": "Brand-and-Voice",
+    "../brand/messaging-snippets.md": "Brand-and-Voice",
     "universal.md": "Troubleshooting-Universal",
     "README.md": "Troubleshooting",
     "openvpn.md": "Troubleshooting-OpenVPN",

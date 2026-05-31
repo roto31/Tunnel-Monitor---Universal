@@ -1,6 +1,8 @@
 # Universal troubleshooting (uvpn)
 
-Applies to **every** supported `vpn_type`. Platform-specific CLI and log steps live in the [per-platform guides](README.md).
+You landed here because something across a VPN did not respond—and the client may still look fine. uvpn names **which kind of problem** you have (client down, split tunnel, DDNS drift, remote site offline) so you do not burn time on the wrong fix.
+
+Applies to **every** supported `vpn_type`. Platform-specific CLI and log steps live in the [per-platform guides](README.md). Brand tone guide: [brand/narrative-and-voice.md](../brand/narrative-and-voice.md).
 
 ---
 
