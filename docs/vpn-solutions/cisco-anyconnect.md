@@ -18,6 +18,69 @@ Invokes Cisco Secure Client **`vpn state`** (and `vpn stats` for statistics) on 
 
 ---
 
+## Diagrams (vendor + uvpn)
+
+### Client-to-headend architecture (vendor)
+
+```mermaid
+flowchart LR
+    subgraph endpoint [Endpoint]
+        SC[Cisco Secure Client]
+        VPN[vpn CLI]
+        SC --- VPN
+    end
+    subgraph headend [Enterprise headend]
+        FTD[ASA / FTD / headend cluster]
+    end
+    subgraph resources [Protected resources]
+        APP[Internal apps / LAN]
+    end
+    SC -->|SSL / IPsec VPN| FTD
+    FTD --> APP
+```
+
+### Session lifecycle (vendor)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Disconnected
+    Disconnected --> Connecting: user or script connect
+    Connecting --> Connected: profile auth OK
+    Connecting --> Disconnected: auth fail
+    Connected --> Reconnecting: network blip
+    Reconnecting --> Connected: session restored
+    Connected --> Disconnected: disconnect
+    Disconnected --> [*]
+```
+
+### vpn CLI monitoring (vendor + uvpn)
+
+```mermaid
+sequenceDiagram
+    participant U as uvpn
+    participant V as vpn CLI
+    participant SC as Secure Client
+    U->>V: vpn state
+    V->>SC: query session
+    SC-->>V: Connected / Disconnected
+    V-->>U: stdout
+    U->>U: universal probes
+    U-->>U: combined diagnosis
+```
+
+### uvpn monitoring flow
+
+```mermaid
+flowchart LR
+    E[MonitorEngine] --> A[cisco_anyconnect adapter]
+    A -->|vpn state| CLI[vpn binary]
+    E --> P[Probes LAN/WAN/DDNS]
+    A --> D[Diagnosis]
+    P --> D
+```
+
+---
+
 ## 1. Product overview
 
 Cisco Secure Client (formerly AnyConnect) provides SSL/IPsec VPN to enterprise headends. Local **`vpn`** CLI reports session state for automation.

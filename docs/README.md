@@ -34,7 +34,7 @@
 
 ## VPN solutions
 
-Uniform vendor-incorporated guides — see [vpn-solutions/README.md](vpn-solutions/README.md).
+Uniform vendor-incorporated guides with Mermaid diagrams — see [vpn-solutions/README.md](vpn-solutions/README.md).
 
 - [openvpn.md](vpn-solutions/openvpn.md)
 - [wireguard.md](vpn-solutions/wireguard.md)

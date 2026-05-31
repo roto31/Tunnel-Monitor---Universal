@@ -19,6 +19,66 @@ Prefers **strongSwan** `swanctl --list-sas`; falls back to legacy `ipsec statusa
 
 ---
 
+## Diagrams (vendor + uvpn)
+
+### IKEv2 / IPsec architecture (vendor)
+
+```mermaid
+flowchart LR
+    subgraph local [Local host]
+        CHARON[charon daemon]
+        SW[swanctl]
+        SW --> CHARON
+    end
+    subgraph remote [Remote gateway]
+        RGW[IKEv2 peer]
+    end
+    CHARON <-->|IKE_SA| RGW
+    CHARON <-->|CHILD_SA / ESP| RGW
+```
+
+### IKE and CHILD SA establishment (vendor)
+
+```mermaid
+sequenceDiagram
+    participant SW as swanctl
+    participant C as charon
+    participant P as Peer
+    SW->>C: initiate / up
+    C->>P: IKE_SA_INIT
+    P-->>C: IKE_SA_INIT response
+    C->>P: IKE_AUTH
+    P-->>C: IKE_AUTH + CHILD_SA
+    Note over C,P: CHILD_SA carries user traffic
+```
+
+### Connection lifecycle (vendor)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle: no SA
+    Idle --> IKE_UP: IKE_SA established
+    IKE_UP --> CHILD_UP: CHILD_SA installed
+    CHILD_UP --> Rekeying: rekey timer
+    Rekeying --> CHILD_UP: new SPI
+    CHILD_UP --> Idle: delete SA
+    Idle --> [*]
+```
+
+### uvpn monitoring flow
+
+```mermaid
+flowchart LR
+    E[MonitorEngine] --> A[ipsec adapter]
+    A -->|swanctl --list-sas| SW[swanctl]
+    SW -->|active CHILD_SA?| A
+    E --> P[Universal probes]
+    A --> D[Diagnosis]
+    P --> D
+```
+
+---
+
 ## 1. Product overview
 
 Site-to-site and remote-access IPsec commonly use **IKEv2** for key exchange and **ESP** for data. **strongSwan** provides `swanctl` for VICI/swanctl-based control.

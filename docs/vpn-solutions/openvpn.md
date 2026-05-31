@@ -18,6 +18,66 @@ Uses the OpenVPN **management interface** (`state` / `status` over TCP) when con
 
 ---
 
+## Diagrams (vendor + uvpn)
+
+### TLS tunnel architecture (vendor)
+
+```mermaid
+flowchart LR
+    subgraph client [OpenVPN client]
+        OC[openvpn process]
+        MGMT[management socket]
+        OC --- MGMT
+    end
+    subgraph server [OpenVPN server]
+        OS[openvpn server]
+    end
+    subgraph net [Networks]
+        RT[Remote LAN routes]
+    end
+    OC <-->|TLS data channel| OS
+    OS --> RT
+```
+
+### Management interface (vendor)
+
+```mermaid
+flowchart TB
+    ADMIN[Local admin / uvpn] -->|TCP| MGMT[management 127.0.0.1:7505]
+    MGMT --> OC[openvpn daemon]
+    MGMT -->|state| SM[State machine]
+    MGMT -->|status| STATS[Byte counts / routes]
+    MGMT -->|log| LOG[Recent log lines]
+```
+
+### Connection state machine (vendor)
+
+```mermaid
+stateDiagram-v2
+    [*] --> CONNECTING
+    CONNECTING --> CONNECTED: TLS + auth OK
+    CONNECTING --> RECONNECTING: link loss
+    RECONNECTING --> CONNECTED: session restored
+    CONNECTED --> EXITING: stop / kill
+    CONNECTING --> EXITING: fatal error
+    EXITING --> [*]
+```
+
+### uvpn monitoring flow
+
+```mermaid
+flowchart LR
+    E[MonitorEngine] --> A[openvpn adapter]
+    A -->|TCP state command| MGMT[management socket]
+    MGMT -->|CONNECTED?| A
+    E --> P[Universal probes]
+    P --> LAN[remote_lan_ip]
+    A --> D[Diagnosis]
+    P --> D
+```
+
+---
+
 ## 1. Product overview
 
 OpenVPN creates encrypted tunnels using SSL/TLS. The **management interface** exposes real-time client state on a local TCP socket (default often `127.0.0.1:7505`).

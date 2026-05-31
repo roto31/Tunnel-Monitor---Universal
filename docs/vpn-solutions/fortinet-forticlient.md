@@ -22,6 +22,67 @@ Internal: [adapter-version-matrix.md](../architecture/adapter-version-matrix.md)
 
 ---
 
+## Diagrams (vendor + uvpn)
+
+### FortiClient deployment (vendor)
+
+```mermaid
+flowchart TB
+    subgraph endpoint [Endpoint]
+        FC[FortiClient app]
+        FCLI[forticlient / fortivpn CLI]
+        FC --- FCLI
+    end
+    subgraph mgmt [Optional management]
+        EMS[FortiClient EMS]
+    end
+    subgraph vpn [VPN headend]
+        FGT[FortiGate / ZTNA edge]
+    end
+    EMS -.->|policy / profiles| FC
+    FC -->|SSL or IPsec tunnel| FGT
+```
+
+### VPN CLI command tree (vendor Linux)
+
+```mermaid
+flowchart TD
+    ROOT[forticlient vpn] --> CONNECT[connect]
+    ROOT --> DISC[disconnect]
+    ROOT --> STATUS[status]
+    ROOT --> LIST[list]
+    ROOT --> VIEW[view]
+    ROOT --> EDIT[edit]
+    ROOT --> REMOVE[remove]
+    STATUS --> UVPN[uvpn parses stdout]
+```
+
+### Tunnel state lifecycle (vendor)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Disconnected
+    Disconnected --> Connecting: vpn connect
+    Connecting --> Connected: tunnel up
+    Connecting --> Disconnected: failure
+    Connected --> Disconnected: vpn disconnect
+    Disconnected --> [*]
+```
+
+### uvpn monitoring flow
+
+```mermaid
+flowchart LR
+    E[MonitorEngine] --> A[fortinet adapter]
+    A -->|forticlient vpn status| CLI[FortiClient CLI]
+    CLI -->|Connected / Connecting / Disconnected| A
+    E --> P[Universal probes]
+    A --> D[Diagnosis]
+    P --> D
+```
+
+---
+
 ## 1. Product overview
 
 FortiClient provides SSL/IPsec VPN, ZTNA, and EMS telemetry. VPN status is exposed via **`forticlient vpn`** subcommands (Linux) or **FortiVPN.exe --cli** (Windows).

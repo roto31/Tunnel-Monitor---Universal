@@ -22,6 +22,79 @@ Internal: [adapter-version-matrix.md](../architecture/adapter-version-matrix.md)
 
 ---
 
+## Diagrams (vendor + uvpn)
+
+### Portal and gateway architecture (vendor)
+
+```mermaid
+flowchart LR
+    subgraph endpoint [Endpoint]
+        GP[GlobalProtect app]
+        CLI[gpctl or globalprotect CLI]
+        GP --- CLI
+    end
+    subgraph cloud [Palo Alto infrastructure]
+        PORTAL[GlobalProtect portal]
+        GW[GlobalProtect gateway]
+    end
+    PORTAL --> GW
+    GP -->|register / connect| PORTAL
+    GP -->|IPsec or SSL tunnel| GW
+```
+
+### On-demand vs always-on (vendor policy)
+
+```mermaid
+flowchart TD
+    POL[Portal policy] --> OND[On-demand]
+    POL --> AON[Always-on]
+    OND --> USER[User clicks Connect]
+    AON --> AUTO[Auto connect at login]
+    USER --> TUN[Tunnel up]
+    AUTO --> TUN
+```
+
+### Connection lifecycle (vendor)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Disconnected
+    Disconnected --> Connecting: portal / gateway negotiation
+    Connecting --> Connected: tunnel established
+    Connecting --> Disconnected: auth or gateway fail
+    Connected --> Disconnected: user disconnect or policy
+    Disconnected --> [*]
+```
+
+### Status CLI paths (vendor)
+
+```mermaid
+flowchart LR
+    subgraph mac [macOS legacy uvpn default]
+        GPCTL[gpctl show status]
+    end
+    subgraph linux [Linux 6.x vendor doc]
+        GPC[globalprotect show --status]
+        GPD[globalprotect show --details]
+    end
+    GPCTL --> PARSE[Adapter parser]
+    GPC --> PARSE
+    GPD --> STATS[Extended stats optional]
+```
+
+### uvpn monitoring flow
+
+```mermaid
+flowchart LR
+    E[MonitorEngine] --> A[globalprotect adapter]
+    A -->|gpctl show status| CLI[GP CLI]
+    E --> P[Universal probes]
+    A --> D[Diagnosis]
+    P --> D
+```
+
+---
+
 ## 1. Product overview
 
 GlobalProtect connects endpoints to Palo Alto Networks firewalls via portal/gateway. Status available via GUI tray, **`globalprotect` CLI** (Linux 6.x), or **`gpctl`** (macOS bundle tool).

@@ -25,6 +25,112 @@ Internal references: [pulse-cli-contract.md](../architecture/pulse-cli-contract.
 
 ---
 
+## Diagrams (vendor + uvpn)
+
+### Product architecture (vendor)
+
+```mermaid
+flowchart LR
+    subgraph endpoint [Endpoint]
+        ISAC[Ivanti Secure Access Client]
+        PL[pulselauncher CLI]
+        ISAC --- PL
+    end
+    subgraph gateway [Ivanti gateway]
+        ICS[Connect Secure]
+        IPS[Policy Secure L3]
+    end
+    subgraph corp [Corporate network]
+        LAN[Protected resources]
+    end
+    ISAC -->|SSL VPN session| ICS
+    ISAC -->|L3 VPN| IPS
+    ICS --> LAN
+    IPS --> LAN
+```
+
+### Deployment paths (vendor)
+
+```mermaid
+flowchart TD
+    A[Choose deployment] --> B[Default installer]
+    A --> C[Preconfigured .pulsepreconfig]
+    A --> D[Non-admin Installer Local System]
+    B --> E[User adds portal via UI or browser]
+    C --> F[msiexec or macOS import]
+    D --> G[Runs under SCM without user admin]
+    E --> H[ISAC ready]
+    F --> H
+    G --> H
+```
+
+### Connection lifecycle (vendor CLI)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Stopped: ISAC not running
+    Stopped --> Connecting: pulselauncher -url -u -p -r
+    Connecting --> Connected: exit 0
+    Connecting --> Failed: exit 2 or 7
+    Connected --> Suspended: -suspend -url
+    Suspended --> Connected: -resume -url
+    Connected --> Disconnected: -signout -url
+    Connected --> Stopped: -stop
+    Disconnected --> [*]
+    Failed --> [*]
+```
+
+### pulselauncher connect sequence (vendor)
+
+```mermaid
+sequenceDiagram
+    participant Script as Operator script
+    participant PL as pulselauncher
+    participant ISAC as ISAC client
+    participant GW as Ivanti gateway
+    Script->>PL: -url -u -p -r
+    PL->>ISAC: Launch / connect L3 session
+    ISAC->>GW: TLS + auth
+    GW-->>ISAC: Session established
+    ISAC-->>PL: exit 0
+    PL-->>Script: Success
+```
+
+### uvpn monitoring flow
+
+```mermaid
+flowchart TB
+    subgraph uvpn [uvpn check cycle]
+        E[MonitorEngine]
+        A[pulse adapter]
+        P[Universal probes]
+        D[Diagnosis]
+    end
+    A -->|pulselauncher status| CLI[CLI stdout]
+    CLI -->|parse Connection Status| A
+    P -->|ping remote_lan_ip| LAN[LAN probe]
+    P -->|ping remote_wan_ip| WAN[WAN probe]
+    P -->|dig remote_ddns| DNS[DDNS probe]
+    E --> A
+    E --> P
+    A --> D
+    P --> D
+    D -->|state.json| ST[Operator / GUI]
+```
+
+### Exit code decision (vendor launcher)
+
+```mermaid
+flowchart TD
+    START[pulselauncher invoked] --> RUN{Client running?}
+    RUN -->|no| M1[exit -1]
+    RUN -->|yes| AUTH{Auth / connect OK?}
+    AUTH -->|no| M2[exit 1-9 or 100]
+    AUTH -->|yes| M0[exit 0 Success]
+```
+
+---
+
 ## 1. Product overview
 
 **Vendor:** Ivanti Secure Access Client (ISAC), formerly Pulse Secure desktop client.

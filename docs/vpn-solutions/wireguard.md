@@ -19,6 +19,65 @@ Parses `wg show <interface> dump` for latest handshake and transfer stats. Hands
 
 ---
 
+## Diagrams (vendor + uvpn)
+
+### Interface model (vendor)
+
+```mermaid
+flowchart TB
+    subgraph host [Linux / macOS host]
+        IF[wg0 interface]
+        WG[wg userspace / kernel module]
+        IF --- WG
+    end
+    subgraph peers [Peers]
+        P1[Remote gateway peer]
+        P2[Optional second peer]
+    end
+    WG <-->|UDP encrypted| P1
+    WG <-->|UDP encrypted| P2
+```
+
+### Handshake and data (vendor)
+
+```mermaid
+sequenceDiagram
+    participant IF as wg0
+    participant P as Peer endpoint
+    IF->>P: Handshake initiation
+    P-->>IF: Handshake response
+    Note over IF,P: latest handshake timestamp updated
+    IF->>P: Encrypted transport
+    P-->>IF: Encrypted transport
+```
+
+### Connection lifecycle (vendor)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Down: interface down
+    Down --> Up: wg-quick up wg0
+    Up --> Active: recent handshake
+    Up --> Stale: handshake older than keepalive
+    Stale --> Active: traffic / keepalive
+    Active --> Down: wg-quick down
+    Down --> [*]
+```
+
+### uvpn monitoring flow
+
+```mermaid
+flowchart LR
+    E[MonitorEngine] --> A[wireguard adapter]
+    A -->|wg show wg0 dump| WG[wg CLI]
+    WG -->|handshake age| A
+    E --> P[Ping remote_lan_ip]
+    A --> D[Diagnosis]
+    P --> D
+```
+
+---
+
 ## 1. Product overview
 
 WireGuard is a modern VPN protocol using UDP and cryptokey routing. User-space tools **`wg`** and **`wg-quick`** manage interfaces (e.g. `wg0`).

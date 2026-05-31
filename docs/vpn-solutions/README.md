@@ -6,6 +6,7 @@ Each guide in this directory follows the same section order so docs and wiki sta
 |---------|---------|
 | **uvpn at a glance** | Adapter id, monitoring approach |
 | **Vendor documentation index** | Table of official vendor sections + working URLs |
+| **Diagrams (vendor + uvpn)** | Mermaid: architecture, lifecycle, monitoring flow |
 | **1–9 Vendor guide (incorporated)** | Summaries mirroring vendor admin-guide structure (not a substitute for vendor legal docs) |
 | **uvpn configuration** | `config.json` example |
 | **uvpn monitoring** | Commands uvpn runs + probe combination |
