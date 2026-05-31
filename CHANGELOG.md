@@ -7,6 +7,25 @@ Versioning follows [SemVer](https://semver.org/).
 
 Legacy bash monitor history: [legacy/CHANGELOG-legacy.md](legacy/CHANGELOG-legacy.md).
 
+## [0.2.0] — 2026-05-31
+
+### Added
+
+- **MonitorAPI** platform abstraction layer (`src/uvpn/api/`).
+- CLI: `statistics`, `logs`, `diagnostics` commands.
+- Enterprise heuristic adapters: Fortinet, GlobalProtect, Pulse/Ivanti.
+- Linux tkinter fallback GUI; GTK4 tabbed GUI with full MonitorView.
+- macOS Liquid Glass styling (macOS 26+) with statistics/logs in menu bar.
+- Repository restructure: `src/`, `docs/architecture|platform-*|vpn-solutions/`.
+- Expanded cited VPN research and per-vendor configuration guides.
+
+### Changed
+
+- Universal terminal menu exposes all monitoring capabilities (8 options).
+- Version bump; pytest coverage for MonitorAPI.
+
+[0.2.0]: https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/uvpn-v0.2.0
+
 ## [0.1.0] — 2026-05-31
 
 ### Added

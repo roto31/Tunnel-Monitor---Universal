@@ -1,32 +1,38 @@
 # Documentation index
 
-## Universal VPN Monitor (uvpn)
+## Architecture
 
 | Document | Description |
 |----------|-------------|
-| [architecture.md](architecture.md) | System design, Mermaid diagrams, adapter pattern |
-| [research/vpn-platforms.md](research/vpn-platforms.md) | Cited VPN vendor and RFC references |
-| [troubleshooting.md](troubleshooting.md) | Common issues and diagnoses |
+| [system-design.md](architecture/system-design.md) | Full architecture + Mermaid diagrams |
+| [platform-abstraction.md](architecture/platform-abstraction.md) | MonitorAPI specification |
+| [plugin-adapters.md](architecture/plugin-adapters.md) | Adapter development guide |
+| [research-vpn-platforms.md](architecture/research-vpn-platforms.md) | Cited VPN research |
 
-### Platforms
+## Linux
 
-- [Linux install](platforms/linux/install.md)
-- [macOS install](platforms/macos/install.md)
+- [installation.md](platform-linux/installation.md)
+- [cli-usage.md](platform-linux/cli-usage.md)
+- [terminal-app.md](platform-linux/terminal-app.md)
+- [gui-setup.md](platform-linux/gui-setup.md)
+- [troubleshooting.md](platform-linux/troubleshooting.md)
 
-### Interfaces
+## macOS
 
-- [CLI](interfaces/cli.md)
-- [Universal terminal (TUI)](interfaces/tui.md)
-- [Linux GTK GUI](interfaces/linux-gui.md)
-- [macOS Swift GUI](interfaces/macos-gui.md)
+- [installation.md](platform-macos/installation.md)
+- [terminal-app.md](platform-macos/terminal-app.md)
+- [gui-setup.md](platform-macos/gui-setup.md)
 
-### VPN adapters
+## VPN solutions
 
-- [OpenVPN](adapters/openvpn.md)
-- [WireGuard](adapters/wireguard.md)
-- [IPsec / IKEv2](adapters/ipsec.md)
-- [Cisco AnyConnect](adapters/cisco-anyconnect.md)
+- [openvpn.md](vpn-solutions/openvpn.md)
+- [wireguard.md](vpn-solutions/wireguard.md)
+- [ipsec-ikev2.md](vpn-solutions/ipsec-ikev2.md)
+- [cisco-anyconnect.md](vpn-solutions/cisco-anyconnect.md)
+- [fortinet-forticlient.md](vpn-solutions/fortinet-forticlient.md)
+- [palo-alto-globalprotect.md](vpn-solutions/palo-alto-globalprotect.md)
+- [pulse-ivanti.md](vpn-solutions/pulse-ivanti.md)
 
-## Legacy bash monitor
+## Legacy
 
-See [../legacy/README.md](../legacy/README.md) and [../legacy/Public/docs/](../legacy/Public/docs/).
+[../legacy/README.md](../legacy/README.md)

@@ -26,9 +26,9 @@ tunnel-monitor-cursor-prompt/
 legacy/Public/.git/
 
 # Swift / SPM build artifacts
-apps/macos/**/.build/
-apps/macos/**/.swiftpm/
-apps/macos/**/Package.resolved
+src/gui-macos/**/.build/
+src/gui-macos/**/.swiftpm/
+src/gui-macos/**/Package.resolved
 legacy/app/TunnelMonitor/.build/
 legacy/app/TunnelMonitor/.swiftpm/
 legacy/Public/mac/app/TunnelMonitor/.build/

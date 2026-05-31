@@ -1,0 +1,52 @@
+#!/bin/bash
+# uvpn-tui — universal terminal application (menu-driven, UniFi-inspired UX)
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+UVPN="${SCRIPT_DIR}/../cli/uvpn"
+
+show_help() {
+    cat <<'EOF'
+uvpn-tui — Universal VPN Monitor terminal application
+
+Interactive menu with equivalent capabilities to CLI and native GUIs:
+  status, statistics, logs, diagnostics, check, preflight, adapters.
+
+Uses MonitorAPI via uvpn CLI (same Python engine).
+EOF
+}
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    show_help
+    exit 0
+fi
+
+while true; do
+    echo ""
+    echo "╔══════════════════════════════════════╗"
+    echo "║   Universal VPN Monitor (uvpn)       ║"
+    echo "╚══════════════════════════════════════╝"
+    echo "  1) Run check (full cycle)"
+    echo "  2) Connection status"
+    echo "  3) Statistics"
+    echo "  4) Logs"
+    echo "  5) Diagnostics + runbook"
+    echo "  6) Preflight"
+    echo "  7) List adapters"
+    echo "  8) Init example config"
+    echo "  q) Quit"
+    printf "> "
+    read -r choice
+    case "${choice}" in
+        1) bash "${UVPN}" check ;;
+        2) bash "${UVPN}" status ;;
+        3) bash "${UVPN}" statistics ;;
+        4) bash "${UVPN}" logs ;;
+        5) bash "${UVPN}" diagnostics ;;
+        6) bash "${UVPN}" preflight ;;
+        7) bash "${UVPN}" adapters ;;
+        8) bash "${UVPN}" init-config ;;
+        q|Q) exit 0 ;;
+        *) echo "Unknown option" ;;
+    esac
+done

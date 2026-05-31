@@ -3,16 +3,14 @@ name: uvpn CI
 on:
   push:
     paths:
-      - 'uvpn/**'
-      - 'apps/**'
+      - 'src/**'
       - 'scripts/**'
       - 'tests/**'
       - 'pyproject.toml'
       - '.github/workflows/uvpn-ci.yml'
   pull_request:
     paths:
-      - 'uvpn/**'
-      - 'apps/**'
+      - 'src/**'
       - 'scripts/**'
       - 'tests/**'
       - 'pyproject.toml'
@@ -33,5 +31,5 @@ jobs:
           python -m pip install -e ".[dev]"
           pytest -q
       - name: Build macOS menu bar app
-        working-directory: apps/macos/UniversalVPNMonitor
+        working-directory: src/gui-macos/UniversalVPNMonitor
         run: swift build -c release
