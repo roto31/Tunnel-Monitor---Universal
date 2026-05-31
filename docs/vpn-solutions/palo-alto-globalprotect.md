@@ -2,18 +2,119 @@
 
 **vpn_type:** `globalprotect` or `gp`
 
-## Verified sources
+## uvpn at a glance
 
-- GlobalProtect admin documentation: https://docs.paloaltonetworks.com/globalprotect
-- Supported builds: [adapter-version-matrix.md](../architecture/adapter-version-matrix.md)
+Parses **`gpctl show status`** (macOS app bundle / legacy CLI) with fixture-validated output. Newer Linux clients may use **`globalprotect show --status`** — set `globalprotect_binary` accordingly; matrix documents gpctl path for v1.0.0.
 
-## Production status (v1.0.0)
+---
 
-The `globalprotect` adapter parses `gpctl show status` output using vendor-doc fixtures (`tests/fixtures/adapters/globalprotect/`). Separate macOS and Linux fixture sets.
+## Vendor documentation index
 
-When `gpctl` is missing, adapter returns `supported=False` — use `generic` for reachability-only monitoring.
+| Vendor section | Official document | URL |
+|----------------|-------------------|-----|
+| GlobalProtect home | GlobalProtect documentation | https://docs.paloaltonetworks.com/globalprotect |
+| Linux app CLI | Use the GlobalProtect App for Linux | https://docs.paloaltonetworks.com/globalprotect/user-guide/6-3/globalprotect-app-for-linux/use-the-globalprotect-app-for-linux |
+| Windows app | Use the GlobalProtect App for Windows | https://docs.paloaltonetworks.com/globalprotect/5-2/globalprotect-app-user-guide/globalprotect-app-for-windows/use-the-globalprotect-app-for-windows |
+| macOS app | GlobalProtect app for macOS user guide | https://docs.paloaltonetworks.com/globalprotect/user-guide/6-0/globalprotect-app-for-mac/ |
+| Administration | GlobalProtect administration | https://docs.paloaltonetworks.com/globalprotect/administration |
 
-## Config example
+Internal: [adapter-version-matrix.md](../architecture/adapter-version-matrix.md)
+
+---
+
+## 1. Product overview
+
+GlobalProtect connects endpoints to Palo Alto Networks firewalls via portal/gateway. Status available via GUI tray, **`globalprotect` CLI** (Linux 6.x), or **`gpctl`** (macOS bundle tool).
+
+**uvpn default:** `gpctl show status` when binary present.
+
+---
+
+## 2. Installation and deployment
+
+Deploy GlobalProtect app via MDM or installer. Typical paths:
+
+| OS | Binary |
+|----|--------|
+| macOS | `/Applications/GlobalProtect.app/Contents/Resources/gpctl` |
+| Linux (6.x) | `globalprotect` in PATH |
+| Linux (legacy) | `gpctl` if shipped with package |
+
+---
+
+## 3. CLI and management interface
+
+**Linux 6.3+** ([user guide](https://docs.paloaltonetworks.com/globalprotect/user-guide/6-3/globalprotect-app-for-linux/use-the-globalprotect-app-for-linux)):
+
+```bash
+globalprotect show --status
+globalprotect show --details
+```
+
+Example:
+
+```text
+GlobalProtect status: Connected
+Assigned IP address: 192.168.1.132
+Gateway IP address: 192.168.1.180
+```
+
+**uvpn adapter (v1.0 fixtures):** `gpctl show status` — output parsed for Connected/Disconnected/Connecting states.
+
+Override with `globalprotect_binary` if using `globalprotect` CLI instead.
+
+---
+
+## 4. Connection lifecycle
+
+| State | Meaning |
+|-------|---------|
+| Connected | Portal + gateway session active |
+| Disconnected | No tunnel |
+| Connecting | Portal or gateway negotiation |
+
+On-demand vs always-on controlled by portal policy.
+
+---
+
+## 5. Status and monitoring
+
+| Layer | Method |
+|-------|--------|
+| Control plane | gpctl / globalprotect status |
+| Data plane | Universal probes |
+| Split tunnel | May show connected while LAN unreachable — uvpn uses combined diagnosis |
+
+---
+
+## 6. Authentication and certificates
+
+Portal auth: SAML, LDAP, cert, MFA per firewall config. uvpn does not authenticate.
+
+---
+
+## 7. Logging and diagnostics
+
+App **Collect Logs** / Strata Logging Service (admin-enabled). Linux/macOS report-an-issue flows in user guides.
+
+---
+
+## 8. Exit codes and return values
+
+CLI returns non-zero when app not running — adapter may report daemon down.
+
+---
+
+## 9. Vendor troubleshooting
+
+| Issue | Action |
+|-------|--------|
+| gpctl missing on Linux | Use `globalprotect show --status` and set binary override |
+| Portal unreachable | Check DNS, cert trust, portal URL |
+
+---
+
+## uvpn configuration
 
 ```json
 {
@@ -24,14 +125,32 @@ When `gpctl` is missing, adapter returns `supported=False` — use `generic` for
 }
 ```
 
-## Monitoring metrics
+---
 
-| Metric | Source | Verified |
-|--------|--------|----------|
-| Portal connection status | `gpctl show status` parser | Documented-at + fixtures |
-| Tunnel reachability | universal probes | Yes |
+## uvpn monitoring
 
-## Troubleshooting
+```bash
+gpctl show status
+uvpn check
+```
 
-- gpctl missing on Linux → set `globalprotect_binary` or use `generic` with probes only.
-- Split tunnel may show connected while remote LAN fails — diagnosis uses combined adapter + ping.
+Fixture sets: `tests/fixtures/adapters/globalprotect/` (macOS + Linux samples).
+
+---
+
+## Supported versions
+
+GlobalProtect app **6.x** with documented CLI; see [adapter-version-matrix.md](../architecture/adapter-version-matrix.md).
+
+---
+
+## uvpn troubleshooting
+
+- gpctl not found → set `globalprotect_binary` or `generic`.
+- Connected + LAN fail → `TUNNEL_DOWN` (common with split tunnel).
+
+---
+
+## Related
+
+- [research-vpn-platforms.md](../architecture/research-vpn-platforms.md)

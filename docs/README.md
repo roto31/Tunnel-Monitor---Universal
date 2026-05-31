@@ -34,6 +34,8 @@
 
 ## VPN solutions
 
+Uniform vendor-incorporated guides — see [vpn-solutions/README.md](vpn-solutions/README.md).
+
 - [openvpn.md](vpn-solutions/openvpn.md)
 - [wireguard.md](vpn-solutions/wireguard.md)
 - [ipsec-ikev2.md](vpn-solutions/ipsec-ikev2.md)
@@ -42,7 +44,7 @@
 - [palo-alto-globalprotect.md](vpn-solutions/palo-alto-globalprotect.md)
 - [pulse-ivanti.md](vpn-solutions/pulse-ivanti.md)
 
-Legacy path `docs/adapters/` redirects here.
+Legacy path `docs/adapters/` redirects here. Each guide uses sections **1–9** mirroring vendor admin documentation — see [README.md](vpn-solutions/README.md).
 
 ## Releases
 

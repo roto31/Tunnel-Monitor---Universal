@@ -85,7 +85,7 @@ This document supports architecture decisions for **uvpn**. Claims are tied to p
 |---------|---------|-------------------|--------------|
 | Fortinet FortiClient | `fortinet` | `fortivpn vpn status` (version-pinned) | [FortiClient docs](https://docs.fortinet.com/product/forticlient) + [version matrix](adapter-version-matrix.md) — **documented-at, fixture-validated** |
 | Palo Alto GlobalProtect | `globalprotect` | `gpctl show status` | [GlobalProtect docs](https://docs.paloaltonetworks.com/globalprotect) + fixtures — **documented-at** |
-| Pulse / Ivanti | `pulse` | `pulselauncher status` | [Pulse CLI contract](pulse-cli-contract.md) + fixtures — **documented-at** |
+| Pulse / Ivanti | `pulse` | `pulselauncher status` | [Ivanti Product Help](https://help.ivanti.com/ps/) + fixtures — **documented-at** |
 
 Use `generic` only when no vendor client is installed.
 

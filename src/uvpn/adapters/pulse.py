@@ -14,7 +14,7 @@ class PulseAdapter(VpnAdapter):
     """
     Pulse Secure / Ivanti Secure Access client.
 
-    Source: https://docs.pulsesecure.net/
+    Source: https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/cli_launcher.htm
     Contract: docs/architecture/pulse-cli-contract.md
     """
 

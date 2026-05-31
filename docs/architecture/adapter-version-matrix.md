@@ -26,8 +26,8 @@ Unsupported versions: return `supported=False` when CLI missing or output unreco
 
 | Platform | Client | Supported in v1.0.0 | CLI surface | Source |
 |----------|--------|---------------------|-------------|--------|
-| macOS | Ivanti Secure Access / Pulse 22.x | Yes | `pulselauncher status` or `PulseClient.sh status` | [Pulse docs](https://docs.pulsesecure.net/) |
-| Linux | Pulse client | Yes (when wrapper present) | Same | Same |
+| macOS | Ivanti Secure Access / Pulse 22.x | Yes | `pulselauncher status` or `PulseClient.sh status` | [Ivanti Product Help](https://help.ivanti.com/ps/) |
+| Linux | Pulse / ISAC client | Yes (when wrapper present) | Same | [Linux CLI QSG](https://help.ivanti.com/ps/help/en_US/ISAC/vNow/linux-qsg/using-linux-client-command-line.htm) |
 
 See [`pulse-cli-contract.md`](pulse-cli-contract.md) for exit criteria and fixture variants.
 
