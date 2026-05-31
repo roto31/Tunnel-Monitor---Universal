@@ -7,9 +7,9 @@ private-docs-repo/
 private-docs-wiki/
 tunnel-monitor-cursor-prompt/
 
-# Legacy mirrors (canonical sources: Public/mac, adapters/)
-opt/
-payload/
+# Legacy mirrors at repo root only (canonical: Public/mac/payload, adapters/)
+/opt/
+/payload/
 
 # Secrets
 **/config.env
