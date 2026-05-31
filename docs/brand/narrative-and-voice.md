@@ -6,7 +6,7 @@
 
 **Scope fact (established):** uvpn is **not** a VPN client. It does not connect you to a VPN. It watches an existing client or routed path.
 
-**Platform note:** Scenarios below mention **iOS** where freelancers and students often work; uvpn today runs on **macOS and Linux hosts** only. When writing for iOS-only users, be explicit: monitor from a Mac/Linux machine on the same network, or use `generic` probes toward resources you need—not an App Store agent (hypothetical future).
+**Platform note:** Scenarios below mention **iOS** where freelancers and students often work; uvpn today runs on **macOS and Linux hosts** only. When writing for iOS-only users, be explicit: monitor from a Mac/Linux machine on the same network, or use the optional **[status portal](../deploy/status-portal.md)** over Tailscale/LAN (Bearer auth, redacted JSON)—not an App Store agent. Security: [security/README.md](../security/README.md).
 
 ---
 

@@ -70,6 +70,24 @@ flowchart TD
 
 ---
 
+## Status portal read path (optional)
+
+Does not change diagnosis logic. `uvpn check` (timer/CLI) writes `state.json`; **uvpn-statusd** serves a redacted copy only.
+
+```mermaid
+flowchart LR
+    CHECK[uvpn check] --> ENG[MonitorEngine]
+    ENG --> ST[state.json write]
+    ST --> RED[PublicStatusDTO]
+    RED --> SD[statusd Bearer plus TLS]
+    SD --> CLIENT[Mobile browser]
+    SD -.->|never| CHECK
+```
+
+See [status portal](../deploy/status-portal.md) and [threat model](../security/threat-model.md).
+
+---
+
 ## Alert timing and traffic light
 
 | Setting | Default | Effect |
@@ -257,6 +275,7 @@ journalctl -u uvpn.service -n 30
 2. `uvpn check` + `jq . ~/.config/uvpn/state.json`  
 3. Platform guide flowchart for your `vpn_type`  
 4. Redacted `config.json` (no secrets) if filing an issue  
+5. **Status portal users:** API omits `adapter.raw` and log tails by design — see [security/threat-model.md](../security/threat-model.md)  
 
 ---
 

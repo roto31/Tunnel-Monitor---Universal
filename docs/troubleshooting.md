@@ -24,6 +24,10 @@ uvpn check
 uvpn explain
 ```
 
+## Sharing status externally
+
+If you use the optional [status portal](deploy/status-portal.md), API responses are **redacted** (no full VPN logs or adapter CLI `raw` output). For tickets, prefer `uvpn explain` and manually redact `config.json`. See [security/threat-model.md](security/threat-model.md) (DLP).
+
 ## Legacy UniFi tunnel-monitor
 
 Site-specific bash monitor (gateway SSH dedup, WAN Guard, OpenVPN site-to-site): [legacy/Public/docs/troubleshooting.md](legacy/Public/docs/troubleshooting.md).

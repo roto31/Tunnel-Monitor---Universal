@@ -1,6 +1,6 @@
 # Universal VPN Monitor — architecture
 
-Product codename: **uvpn**. Python backend; shell CLI/TUI; native GUIs on Linux (GTK4) and macOS (Swift).
+Product codename: **uvpn**. Python backend; shell CLI/TUI; native GUIs on Linux (GTK4) and macOS (Swift). Optional **read-only status portal** (`uvpn-statusd`, FastAPI) for private overlay access—see [Security](../security/README.md).
 
 ---
 
@@ -13,6 +13,7 @@ flowchart TB
         TUI[uvpn-tui Bash menu]
         LGUI[Linux GTK4 GUI]
         MGUI[macOS Swift GUI]
+        HTTP[uvpn-statusd optional]
     end
 
     subgraph Core["Python monitoring core"]
@@ -39,6 +40,7 @@ flowchart TB
     TUI --> API
     LGUI --> API
     API --> ENG
+    HTTP --> STATE
     MGUI --> STATE
     ENG --> PROB
     ENG --> DIAG
@@ -52,7 +54,10 @@ flowchart TB
     LGUI --> STATE
 ```
 
-**Rule:** GUIs never implement probes. macOS GUI reads the same `~/.config/uvpn/state.json` written by `MonitorEngine` (or invokes `uvpn check` via helper).
+**Rules:**
+
+- GUIs never implement probes. macOS GUI reads the same `~/.config/uvpn/state.json` written by `MonitorEngine` (or invokes `uvpn check` via helper).
+- **Status portal** (`pip install -e ".[portal]"`) reads `state.json` through `MonitorAPI` with **DLP redaction**—no `run_check()` over HTTP, no config writes. NIST mapping: [nist-portal-architecture.md](../security/nist-portal-architecture.md).
 
 ---
 
@@ -151,13 +156,16 @@ This matches operational reality: [RFC 4271 BGP-style reachability](https://www.
 
 ```
 src/
-  uvpn/                 Python package (core, adapters, api, cli module)
+  uvpn/                 Python package (core, adapters, api, security, statusd)
   cli/uvpn              Shell CLI wrapper
   terminal-app/uvpn-tui Universal terminal application
   gui-linux/            GTK4 + tkinter fallback
   gui-macos/            Swift menu bar app
+  deploy/               systemd, LaunchAgent, statusd unit + TLS examples
 docs/
   architecture/         System design, research, PAL, plugins
+  security/             NIST portal architecture, threat model, verification
+  deploy/               Scheduling, status-portal install
   platform-linux/       Linux install, CLI, TUI, GUI
   platform-macos/       macOS install, CLI, TUI, GUI
   vpn-solutions/        Per-VPN configuration guides
@@ -169,9 +177,44 @@ See also [platform-abstraction.md](platform-abstraction.md) and [plugin-adapters
 
 ---
 
+## 7. Status portal (optional, private overlay)
+
+```mermaid
+flowchart TB
+    subgraph clients [Private clients]
+        PH[Mobile browser]
+        ADM[Admin workstation]
+    end
+    subgraph edge [TLS SC-8]
+        PROXY[Reverse proxy Caddy]
+    end
+    subgraph portal [uvpn-statusd]
+        AUTH[Bearer auth fail-closed]
+        API[FastAPI read-only]
+        RED[PublicStatusDTO DLP]
+    end
+    subgraph check [Check path separate]
+        TIMER[systemd timer or CLI]
+        ENG[MonitorEngine]
+    end
+    ST[(state.json)]
+
+    PH -->|TLS 1.2+| PROXY
+    ADM --> PROXY
+    PROXY --> AUTH --> API --> RED
+    RED -->|read only| ST
+    TIMER --> ENG
+    ENG -->|atomic write| ST
+    API -.->|never invokes| ENG
+```
+
+Bearer token, no `run_check` over HTTP: [../security/nist-portal-architecture.md](../security/nist-portal-architecture.md).
+
+---
+
 ## 8. Interface architecture
 
-All four interfaces expose **status, statistics, logs, diagnostics**:
+All interfaces expose **status, statistics, logs, diagnostics** (portal: redacted status/diagnostics only):
 
 ```mermaid
 flowchart LR
@@ -180,6 +223,7 @@ flowchart LR
         TUI[Terminal uvpn-tui]
         LG[Linux GUI]
         MG[macOS GUI]
+        SD[statusd HTTPS]
     end
     API[MonitorAPI]
     ENG[MonitorEngine]
@@ -189,19 +233,20 @@ flowchart LR
     TUI --> API
     LG --> API
     MG --> ST
+    SD --> ST
     API --> ENG
     ENG --> ST
     ST --> MG
     ST --> LG
 ```
 
-| Capability | CLI | TUI | Linux GUI | macOS GUI |
-|------------|-----|-----|-----------|-----------|
-| Connection status | `status` | menu 2 | Status tab | menu bar title |
-| Statistics | `statistics` | menu 3 | Statistics tab | Statistics disclosure |
-| Logs | `logs` | menu 4 | Logs tab | Logs disclosure |
-| Diagnostics | `diagnostics` | menu 5 | Diagnostics tab | Steps disclosure |
-| Run check | `check` | menu 1 | Run check btn | Run check btn |
+| Capability | CLI | TUI | Linux GUI | macOS GUI | Status portal |
+|------------|-----|-----|-----------|-----------|---------------|
+| Connection status | `status` | menu 2 | Status tab | menu bar title | `GET /api/v1/status` |
+| Statistics | `statistics` | menu 3 | Statistics tab | Statistics disclosure | — |
+| Logs | `logs` | menu 4 | Logs tab | Logs disclosure | — (excluded DLP) |
+| Diagnostics | `diagnostics` | menu 5 | Diagnostics tab | Steps disclosure | `GET /api/v1/diagnostics` |
+| Run check | `check` | menu 1 | Run check btn | Run check btn | **not exposed** |
 
 ---
 
@@ -229,6 +274,7 @@ sequenceDiagram
     TUI->>CLI: uvpn statistics
     CLI->>API: get_statistics
     API->>ST: read
+    Note over Op,ST: Optional statusd reads redacted snapshot only
 ```
 
 GTK path: `launch_gui.py` → `MonitorAPI.full_view()` directly (no duplicate probes).
@@ -241,11 +287,34 @@ sequenceDiagram
     participant CLI as uvpn check
     participant ENG as MonitorEngine
     participant ST as state.json
+    participant SD as statusd optional
 
     CLI->>ENG: run_check
     ENG->>ST: write statistics logs diagnostics
     GUI->>ST: poll every 15s
     GUI->>CLI: optional Run check button
+    SD->>ST: get_status redacted
+    Note over SD,ENG: Portal never calls run_check
+```
+
+### Status portal read (any platform)
+
+```mermaid
+sequenceDiagram
+    participant Client as Mobile browser
+    participant TLS as Reverse proxy
+    participant SD as uvpn-statusd
+    participant API as MonitorAPI
+    participant ST as state.json
+
+    Client->>TLS: GET /api/v1/status Bearer
+    TLS->>SD: forward
+    SD->>SD: verify token
+    SD->>API: get_status
+    API->>ST: read
+    API-->>SD: snapshot
+    SD->>SD: PublicStatusDTO redaction
+    SD-->>Client: JSON no adapter.raw
 ```
 
 Liquid Glass styling: `glassEffect` on macOS 26+ with material fallback on macOS 14–25.
@@ -263,6 +332,8 @@ flowchart TB
     DIAG[Diagnosis engine]
     ST[state.json]
     IF[CLI TUI GUI]
+    RED[PublicStatusDTO]
+    SD[statusd HTTPS optional]
 
     VPN --> AD
     VPN --> UP
@@ -271,6 +342,8 @@ flowchart TB
     ENG --> DIAG
     DIAG --> ST
     ST --> IF
+    ST --> RED
+    RED --> SD
 ```
 
 ---
@@ -282,5 +355,6 @@ flowchart TB
 | v0.1 | Core engine, 4 adapters, CLI/TUI, GTK scaffold, Swift reader |
 | v0.2 | MonitorAPI, statistics/logs, enterprise adapter stubs, tkinter fallback, Liquid Glass (pre-release) |
 | v1.0 | Production enterprise adapters (fixture-validated), GUI CLI parity, systemd/launchd scheduling, `uvpn-v1.0.0` |
+| v1.1 | Optional NIST-aligned status portal (`uvpn-statusd`), `docs/security/`, `[portal]` extra |
 
 Each new adapter requires **cited** vendor CLI/API documentation in `docs/research/`.

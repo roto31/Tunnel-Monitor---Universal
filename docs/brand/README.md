@@ -12,6 +12,6 @@ Content creators start here before editing user-facing docs, wiki pages, CLI cop
 
 When you change repo docs, run:
 
-- `python3 scripts/sync-wiki-brand.py`
-- `python3 scripts/sync-wiki-vpn-guides.py`
-- `python3 scripts/sync-wiki-troubleshooting.py`
+```bash
+python3 scripts/sync-wiki-all.py
+```

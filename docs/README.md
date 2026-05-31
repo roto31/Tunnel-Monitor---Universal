@@ -9,10 +9,28 @@
 | [narrative-and-voice.md](brand/narrative-and-voice.md) | Backstory, audiences, voice principles |
 | [messaging-snippets.md](brand/messaging-snippets.md) | Reusable copy blocks |
 
+## Security (optional status portal)
+
+Read-only **uvpn-statusd** for LAN/Tailscale; NIST CSF 2.0 outcomes with SP 800-53 Rev 5 Moderate mapping and SP 800-52 Rev 2 TLS guidance.
+
+| Document | Description |
+|----------|-------------|
+| [security/README.md](security/README.md) | Index |
+| [deploy/status-portal.md](deploy/status-portal.md) | Install and run `uvpn-statusd` |
+| [security/nist-portal-architecture.md](security/nist-portal-architecture.md) | Architecture + control mapping |
+| [security/threat-model.md](security/threat-model.md) | STRIDE (macOS/Linux) |
+| [security/verification.md](security/verification.md) | Audit cadence, testssl, CI evidence |
+| [security/ctm-portal.csv](security/ctm-portal.csv) | Control Traceability Matrix |
+| [security/host-hardening-linux.md](security/host-hardening-linux.md) | systemd, nftables, permissions |
+| [security/host-hardening-macos.md](security/host-hardening-macos.md) | Per-user portal, FileVault, pf |
+
+Wiki sync: `python3 scripts/sync-wiki-all.py`
+
 ## Architecture
 
 | Document | Description |
 |----------|-------------|
+| [vpn-platform-diagrams.md](architecture/vpn-platform-diagrams.md) | Mermaid index (interfaces, enterprise, per-vendor flows) |
 | [system-design.md](architecture/system-design.md) | Full architecture + Mermaid diagrams |
 | [platform-abstraction.md](architecture/platform-abstraction.md) | MonitorAPI specification |
 | [plugin-adapters.md](architecture/plugin-adapters.md) | Adapter development guide |

@@ -4,7 +4,7 @@ The **MonitorAPI** (`src/uvpn/api/platform.py`) is the contract between the Pyth
 
 ## Design goals
 
-1. **Identical capabilities** — CLI, universal terminal, Linux GUI, and macOS GUI call the same methods.
+1. **Identical capabilities** — CLI, universal terminal, Linux GUI, and macOS GUI call the same methods. The optional **status portal** uses read-only `get_status()` / `get_diagnostics()` with [DLP redaction](../security/threat-model.md)—never `run_check()` over HTTP.
 2. **Stable JSON** — All methods return JSON-serializable structures for Swift/GTK/tkinter binding.
 3. **No probe logic in GUIs** — Frontends never import adapters directly.
 
@@ -21,6 +21,16 @@ The **MonitorAPI** (`src/uvpn/api/platform.py`) is the contract between the Pyth
 | `preflight()` | Dependency validation | CLI `preflight`, TUI option 6 |
 | `list_adapters()` | Registered VPN types | CLI `adapters` |
 | `full_view()` | Combined `MonitorView` | Linux/macOS GUIs |
+
+### Optional status portal (`uvpn-statusd`)
+
+| HTTP route | MonitorAPI | Notes |
+|------------|------------|-------|
+| `GET /api/v1/status` | `get_status()` → `PublicStatusDTO` | Drops `adapter.raw`, `logs` |
+| `GET /api/v1/diagnostics` | `get_diagnostics()` → redacted | Bearer auth required |
+| — | `run_check()` | **Not exposed** (checks stay on timer/CLI) |
+
+Install: `pip install -e ".[portal]"`. Security: [status-portal.md](../deploy/status-portal.md), [security/README.md](../security/README.md).
 
 ## MonitorView schema
 

@@ -6,8 +6,9 @@ Source for [GitHub Wiki](https://github.com/roto31/Tunnel-Monitor---Universal/wi
 
 See [.wiki-publish/Home.md](../.wiki-publish/Home.md) for the canonical wiki home.
 
-Sync:
+Sync (regenerates all of `.wiki-publish/` from repo docs):
 
 ```bash
-cd .wiki-publish && git add -A && git commit -m "Update wiki" && git push origin master
+python3 scripts/sync-wiki-all.py
+cd .wiki-publish && git add -A && git commit -m "Sync wiki from repo" && git push origin master
 ```

@@ -47,6 +47,17 @@ Runs `uvpn check` every 300 seconds. Config: `~/Library/Application Support/uvpn
 
 Set `vpn_type` to `cisco_anyconnect` and `cisco_vpn_binary` to the Secure Client CLI path. See [../vpn-solutions/cisco-anyconnect.md](../vpn-solutions/cisco-anyconnect.md).
 
+## Optional status portal (private network)
+
+For phone/browser status over Tailscale or LAN (same Mac that runs the VPN client):
+
+```bash
+pip install -e ".[portal]"
+# See docs/deploy/status-portal.md — token file, uvpn-statusd, TLS in front of loopback
+```
+
+Hardening: [../security/host-hardening-macos.md](../security/host-hardening-macos.md).
+
 ## Legacy note
 
 The archived bash monitor is under `legacy/Public/mac/` — **not** the Universal product. Use **uvpn** for platform-agnostic monitoring.

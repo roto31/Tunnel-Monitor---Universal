@@ -22,6 +22,10 @@ python3 -m uvpn   # direct module
 | `adapters` | List registered VPN types |
 | `init-config` | Write example config |
 
+## Related: status portal
+
+**`uvpn-statusd`** (optional, `pip install -e ".[portal]"`) serves redacted HTTP status—it does **not** replace CLI `check`. See [../deploy/status-portal.md](../deploy/status-portal.md).
+
 ## Examples
 
 ```bash

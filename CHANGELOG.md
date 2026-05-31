@@ -7,6 +7,16 @@ Versioning follows [SemVer](https://semver.org/).
 
 Legacy bash monitor history: [legacy/CHANGELOG-legacy.md](legacy/CHANGELOG-legacy.md).
 
+## [1.1.0] — 2026-05-30
+
+### Added — Code
+
+- **Optional status portal (`uvpn-statusd`):** read-only FastAPI on private overlay; `[portal]` extra (`fastapi`, `uvicorn`).
+- **Security module:** Bearer auth (fail-closed), `PublicStatusDTO` redaction (DLP), structured audit logs.
+- **Deploy:** `uvpn-statusd.service`, `install-statusd.sh`, Caddy/nftables examples.
+- **Docs:** `docs/security/` (NIST CSF / SP 800-53 Moderate / SP 800-52 mapping, threat model, CTM, verification).
+- **CI:** `portal` job — pytest, bandit, pip-audit.
+
 ## [1.0.0] — 2026-05-30
 
 ### Added
@@ -25,6 +35,7 @@ Legacy bash monitor history: [legacy/CHANGELOG-legacy.md](legacy/CHANGELOG-legac
 - Dynamic config paths (`UVPN_CONFIG_DIR`) for tests and deployed units.
 - Pulse guide no longer recommends `generic` over the Pulse adapter.
 
+[1.1.0]: https://github.com/roto31/Tunnel-Monitor---Universal/compare/uvpn-v1.0.0...uvpn-v1.1.0
 [1.0.0]: https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/uvpn-v1.0.0
 
 ## [0.2.0] — 2026-05-31

@@ -11,3 +11,5 @@ bash scripts/uvpn-tui
 ```
 
 Config: `~/.config/uvpn/config.json`
+
+Optional **uvpn-statusd** for mobile status over private overlay: [../deploy/status-portal.md](../deploy/status-portal.md), [../security/host-hardening-macos.md](../security/host-hardening-macos.md).

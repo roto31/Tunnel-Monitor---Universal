@@ -67,7 +67,9 @@ flowchart LR
     STATE --> D[Diagnosis]
     STATS --> D
     P --> D
-    D -->|same OS user as GUI| OK[accurate session read]
+    D --> ST[state.json]
+    ST --> RED[PublicStatusDTO DLP]
+    RED --> SD[statusd optional HTTPS]
 ```
 
 ---

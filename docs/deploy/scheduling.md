@@ -2,6 +2,8 @@
 
 Shipped unit files under [`src/deploy/`](../../src/deploy/). Default interval: **300 seconds** (matches `check_interval_sec` default).
 
+Optional read-only HTTP status (private overlay): [status-portal.md](status-portal.md).
+
 ## Linux (systemd timer)
 
 ```bash

@@ -73,3 +73,13 @@ sudo systemctl daemon-reload && sudo systemctl enable --now uvpn.timer
 | Debian 12+ | same as Ubuntu |
 
 If GUI packages are unavailable, use **`uvpn-tui`** — full engine parity.
+
+## Optional status portal (private network)
+
+```bash
+pip install -e ".[portal]"
+sudo bash src/deploy/linux/install-statusd.sh
+sudo systemctl enable --now uvpn-statusd
+```
+
+TLS and firewall: [../security/host-hardening-linux.md](../security/host-hardening-linux.md). Overview: [../deploy/status-portal.md](../deploy/status-portal.md).

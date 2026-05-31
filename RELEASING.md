@@ -9,7 +9,7 @@
 
 ## Pre-release checklist
 
-1. `pytest -q` passes.
+1. `pytest -q` passes (include portal if releasing statusd: `pip install -e ".[portal,dev]"`).
 2. `swift build -c release` in `src/gui-macos/UniversalVPNMonitor/`.
 3. Enterprise adapter fixture tests pass (`tests/test_adapters_enterprise.py`).
 4. `CHANGELOG.md` updated (Code / Data / Build categories).
@@ -31,11 +31,14 @@ Optional manual artifacts:
 
 ## CI
 
-- **uvpn CI:** `.github/workflows/uvpn-ci.yml` on changes to `src/`, `scripts/`, `tests/`, `pyproject.toml`.
+- **uvpn CI:** `.github/workflows/uvpn-ci.yml` — core tests + `portal` job (bandit, pip-audit).
+- **Security docs:** `docs/security/`; wiki sync: `python3 scripts/sync-wiki-security.py`.
 - **uvpn release:** `.github/workflows/uvpn-release.yml` on `uvpn-v*` tags.
 - **Legacy release:** `.github/workflows/legacy-release.yml` on `v*` tags (bash `.pkg`).
 
 ## Scheduling artifacts
+
+Optional status portal: `pip install -e ".[portal]"`, unit `src/deploy/linux/uvpn-statusd.service`. See [docs/deploy/status-portal.md](docs/deploy/status-portal.md).
 
 Shipped under `src/deploy/`:
 

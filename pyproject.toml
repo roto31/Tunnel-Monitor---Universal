@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uvpn"
-version = "1.0.0"
+version = "1.1.0"
 description = "Universal point-to-point VPN monitor — platform-agnostic Python core"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -14,10 +14,20 @@ dependencies = []
 
 [project.optional-dependencies]
 linux-gui = ["PyGObject>=3.42"]
-dev = ["pytest>=8.0"]
+portal = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+]
+dev = [
+    "pytest>=8.0",
+    "httpx>=0.27.0",
+    "bandit>=1.7.0",
+    "pip-audit>=2.7.0",
+]
 
 [project.scripts]
 uvpn = "uvpn.interfaces.cli:main"
+uvpn-statusd = "uvpn.interfaces.statusd.main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

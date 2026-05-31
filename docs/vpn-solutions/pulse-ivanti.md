@@ -98,8 +98,10 @@ flowchart TB
     CLI --> D[Diagnosis]
     EC --> D
     P --> D
-    D -->|Connected + LAN fail| TD[TUNNEL_DOWN split tunnel]
-    D --> ST[state.json + adapter.raw.snippet]
+    D -->|Connected + LAN fail| TD[VPN_NEGOTIATION_FAILED]
+    D --> ST[state.json includes adapter.raw internally]
+    ST --> RED[PublicStatusDTO strips raw and logs]
+    RED --> SD[statusd optional HTTPS]
 ```
 
 ---

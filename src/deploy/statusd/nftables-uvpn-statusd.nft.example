@@ -1,0 +1,22 @@
+# Example nftables rules (SC-7) — allow status portal only from overlay.
+# Adjust interface and CIDR. Load: nft -f nftables-uvpn-statusd.nft
+
+table inet uvpn_status {
+  chain input {
+    type filter hook input priority filter; policy drop;
+
+    ct state established,related accept
+    iif "lo" accept
+
+    # Tailscale UDP (if needed on same host)
+    # udp dport 41641 accept
+
+    # Status portal HTTPS from Tailscale CGNAT range only
+    ip saddr 100.64.0.0/10 tcp dport 8443 accept
+
+    # Optional: site management LAN
+    # ip saddr 192.168.0.0/16 tcp dport 8443 accept
+
+    icmp type echo-request accept
+  }
+}

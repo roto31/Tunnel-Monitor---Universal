@@ -64,6 +64,9 @@ flowchart LR
     PARSE --> D[Diagnosis]
     P --> D
     D -->|handshake OK LAN fail| TD[TUNNEL_DOWN]
+    D --> ST[state.json]
+    ST --> RED[PublicStatusDTO DLP]
+    RED --> SD[statusd optional HTTPS]
 ```
 
 ---

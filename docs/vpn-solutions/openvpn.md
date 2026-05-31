@@ -68,6 +68,9 @@ flowchart LR
     MGMT --> D[Diagnosis]
     PROC --> D
     P --> D
+    D --> ST[state.json]
+    ST --> RED[PublicStatusDTO DLP]
+    RED --> SD[statusd optional HTTPS]
 ```
 
 ---

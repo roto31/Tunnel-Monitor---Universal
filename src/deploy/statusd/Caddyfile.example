@@ -1,0 +1,26 @@
+# TLS terminator for uvpn-statusd (NIST SP 800-52 Rev 2 aligned profile).
+# Listen on Tailscale or management VLAN IP only — not 0.0.0.0 on WAN.
+#
+# Install Caddy, place certs, then: caddy run --config Caddyfile
+
+{
+  servers {
+    protocols h1 h2
+  }
+}
+
+:8443 {
+  bind {$TS_IP:8443}
+
+  tls {$TLS_CERT_FILE} {$TLS_KEY_FILE} {
+    protocols tls1.3 tls1.2
+  }
+
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Cache-Control "no-store"
+    -Server
+  }
+
+  reverse_proxy 127.0.0.1:8080
+}

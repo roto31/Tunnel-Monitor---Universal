@@ -4,6 +4,16 @@ Most VPN outages are not dramatic—they are **misleading**. The icon is green, 
 
 Dual-audience format modeled after [legacy/Public/docs/troubleshooting.md](../legacy/Public/docs/troubleshooting.md): **quick steps** for operators, **technical depth** for engineers. Tone: [brand/narrative-and-voice.md](../brand/narrative-and-voice.md).
 
+**External sharing:** Optional [status portal](../deploy/status-portal.md) returns redacted diagnostics only—see [threat model](../security/threat-model.md).
+
+```mermaid
+flowchart LR
+    CHECK[uvpn check] --> ST[state.json]
+    ST --> RED[PublicStatusDTO]
+    RED --> SD[statusd HTTPS]
+    SD -.->|read only| CHECK
+```
+
 ## Universal (all `vpn_type` values)
 
 | Document | Contents |
@@ -44,4 +54,4 @@ uvpn statistics   # when implemented for your build
 | `/etc/uvpn/config.json` | systemd deployment |
 | `~/.config/uvpn/state.json` | Last snapshot + diagnosis |
 
-Legacy site-specific bash monitor: [../../legacy/Public/docs/troubleshooting.md](../../legacy/Public/docs/troubleshooting.md) (UniFi gateway SSH dedup, WAN Guard — **not** part of uvpn core).
+Legacy site-specific bash monitor: [Troubleshooting-Legacy-Public](Troubleshooting-Legacy-Public) (UniFi gateway SSH dedup, WAN Guard — **not** part of uvpn core).

@@ -67,6 +67,9 @@ flowchart LR
     E --> P[ICMP probes]
     PARSE --> D[Diagnosis]
     P --> D
+    D --> ST[state.json]
+    ST --> RED[PublicStatusDTO DLP]
+    RED --> SD[statusd optional HTTPS]
 ```
 
 ---

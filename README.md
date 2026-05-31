@@ -92,11 +92,21 @@ legacy/           Archived bash monitor (not Universal product)
 | `globalprotect` | Production (fixture-validated) | [docs/vpn-solutions/palo-alto-globalprotect.md](docs/vpn-solutions/palo-alto-globalprotect.md) |
 | `pulse` | Production (CLI + fixtures) | [docs/vpn-solutions/pulse-ivanti.md](docs/vpn-solutions/pulse-ivanti.md) |
 
+## Optional status portal (private network)
+
+Read-only **uvpn-statusd** (FastAPI) for phone/browser status on LAN or Tailscale — `pip install -e ".[portal]"`. Not enabled by default.
+
+- **Install:** [docs/deploy/status-portal.md](docs/deploy/status-portal.md)
+- **NIST architecture** (CSF 2.0, SP 800-53 Moderate, SP 800-52 TLS): [docs/security/nist-portal-architecture.md](docs/security/nist-portal-architecture.md)
+- **Threat model & audit:** [docs/security/threat-model.md](docs/security/threat-model.md), [docs/security/verification.md](docs/security/verification.md)
+
 ## Documentation
 
 - [Architecture](docs/architecture/system-design.md) — all Mermaid diagrams
 - [Platform API](docs/architecture/platform-abstraction.md)
 - [Scheduling](docs/deploy/scheduling.md) — systemd + LaunchAgent
+- [Status portal](docs/deploy/status-portal.md) — optional `uvpn-statusd` (private overlay)
+- [Security](docs/security/README.md) — NIST-aligned portal hardening · [Security policy](SECURITY.md)
 - [Adapter version matrix](docs/architecture/adapter-version-matrix.md)
 - [Plugin guide](docs/architecture/plugin-adapters.md)
 - [VPN research (cited)](docs/architecture/research-vpn-platforms.md)
