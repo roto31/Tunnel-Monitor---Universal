@@ -22,7 +22,7 @@ Default probe: **`gpctl show status`**. Linux 6.x packages may expose **`globalp
 
 ## Visual reference
 
-![GlobalProtect portal and gateway topology](assets/globalprotect-architecture.png)
+![GlobalProtect portal and gateway topology](https://raw.githubusercontent.com/roto31/Tunnel-Monitor---Universal/main/docs/vpn-solutions/assets/globalprotect-architecture.png)
 
 ## Diagrams
 

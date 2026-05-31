@@ -21,7 +21,7 @@ Prefers **`swanctl --list-sas`**; falls back to **`ipsec statusall`** on legacy 
 
 ## Visual reference
 
-![strongSwan IKE and CHILD security associations](assets/ipsec-architecture.png)
+![strongSwan IKE and CHILD security associations](https://raw.githubusercontent.com/roto31/Tunnel-Monitor---Universal/main/docs/vpn-solutions/assets/ipsec-architecture.png)
 
 ## Diagrams
 

@@ -24,4 +24,4 @@ done
 | [wireguard-architecture.png](wireguard-architecture.png) | [wireguard-architecture.svg](wireguard-architecture.svg) | WireGuard |
 | [ipsec-architecture.png](ipsec-architecture.png) | [ipsec-architecture.svg](ipsec-architecture.svg) | IPsec / strongSwan |
 
-Referenced from each guide under **Visual reference**. Wiki pages use `raw/main/.../*.png` URLs.
+Referenced from each guide under **Visual reference** using absolute `raw.githubusercontent.com/roto31/...` URLs (GitHub does not render repo-relative SVG). Wiki pages embed copies under `.wiki-publish/images/` for reliable wiki rendering.

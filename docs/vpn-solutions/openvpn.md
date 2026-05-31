@@ -21,7 +21,7 @@ Queries the OpenVPN **management TCP socket** for `state` and optional `status`.
 
 ## Visual reference
 
-![OpenVPN management socket and data channel](assets/openvpn-architecture.png)
+![OpenVPN management socket and data channel](https://raw.githubusercontent.com/roto31/Tunnel-Monitor---Universal/main/docs/vpn-solutions/assets/openvpn-architecture.png)
 
 ## Diagrams
 

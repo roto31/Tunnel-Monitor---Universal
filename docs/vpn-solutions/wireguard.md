@@ -21,7 +21,7 @@ Runs `wg show <interface> dump` and treats recent peer handshake as connected (d
 
 ## Visual reference
 
-![WireGuard interface and peer handshake](assets/wireguard-architecture.png)
+![WireGuard interface and peer handshake](https://raw.githubusercontent.com/roto31/Tunnel-Monitor---Universal/main/docs/vpn-solutions/assets/wireguard-architecture.png)
 
 ## Diagrams
 
