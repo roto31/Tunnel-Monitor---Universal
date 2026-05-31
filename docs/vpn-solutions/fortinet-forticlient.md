@@ -1,82 +1,67 @@
 # Fortinet FortiClient
 
-**vpn_type:** `fortinet` or `forticlient`
+**vpn_type:** `fortinet` or `forticlient`  
+**Pinned client line:** FortiClient 7.4.x (Linux / Windows / macOS administration guides)
 
 ## uvpn at a glance
 
-Parses **`forticlient vpn status`** (Linux) or **`fortivpn --cli --status`** (Windows/macOS style) with version-pinned fixtures. Unsupported CLI output → `supported=False`.
+Parses VPN status text from **`forticlient vpn status`** on Linux or **`FortiVPN --cli --status`** on Windows-style installs. Fixture-validated for 7.x output shapes. Unrecognized CLI layouts yield `supported=False`.
 
 ---
 
-## Vendor documentation index
+## Incorporated reference map
 
-| Vendor section | Official document | URL |
-|----------------|-------------------|-----|
-| Product library | FortiClient document library | https://docs.fortinet.com/product/forticlient |
-| Linux CLI (7.4.7) | FortiClient (Linux) CLI commands | https://docs.fortinet.com/document/forticlient/7.4.7/administration-guide/41299/forticlient-linux-cli-commands |
-| Windows CLI (7.4.7) | FortiClient (Windows) CLI commands | https://docs.fortinet.com/document/forticlient/7.4.7/administration-guide/95591/forticlient-windows-cli-commands |
-| macOS CLI | FortiClient (macOS) CLI commands | https://docs.fortinet.com/document/forticlient/7.4.7/administration-guide/95491/forticlient-macos-cli-commands |
-| Appendix D (CLI index) | Appendix D - CLI commands | https://docs.fortinet.com/document/forticlient/7.4.7/administration-guide/792335 |
-
-Internal: [adapter-version-matrix.md](../architecture/adapter-version-matrix.md)
+| Topic | Source material (maintainer record) | Sections |
+|-------|--------------------------------------|----------|
+| VPN CLI tree (Linux) | FortiClient 7.4 administration — Linux CLI | §3 |
+| VPN CLI (Windows) | FortiClient 7.4 administration — Windows CLI | §3 |
+| CLI appendix index | FortiClient administration — Appendix D | §3 |
+| EMS registration | Windows CLI — FortiESNAC (out of uvpn probe path) | §7 note |
 
 ---
 
-## Diagrams (vendor + uvpn)
+## Diagrams
 
-### FortiClient deployment (vendor)
+(See existing FortiClient deployment, command tree, lifecycle, and uvpn flow diagrams in prior revision — retained below.)
 
 ```mermaid
 flowchart TB
     subgraph endpoint [Endpoint]
-        FC[FortiClient app]
-        FCLI[forticlient / fortivpn CLI]
+        FC[FortiClient]
+        FCLI[forticlient or FortiVPN CLI]
         FC --- FCLI
     end
-    subgraph mgmt [Optional management]
-        EMS[FortiClient EMS]
-    end
-    subgraph vpn [VPN headend]
-        FGT[FortiGate / ZTNA edge]
-    end
-    EMS -.->|policy / profiles| FC
-    FC -->|SSL or IPsec tunnel| FGT
+    EMS[FortiClient EMS] -.->|profiles| FC
+    FGT[FortiGate or ZTNA edge] <-->|VPN| FC
 ```
-
-### VPN CLI command tree (vendor Linux)
 
 ```mermaid
 flowchart TD
-    ROOT[forticlient vpn] --> CONNECT[connect]
-    ROOT --> DISC[disconnect]
-    ROOT --> STATUS[status]
-    ROOT --> LIST[list]
-    ROOT --> VIEW[view]
-    ROOT --> EDIT[edit]
-    ROOT --> REMOVE[remove]
-    STATUS --> UVPN[uvpn parses stdout]
+    ROOT[forticlient vpn] --> connect
+    ROOT --> disconnect
+    ROOT --> status
+    ROOT --> list
+    ROOT --> view
+    ROOT --> edit
+    ROOT --> remove
+    status --> uvpn[uvpn parser]
 ```
-
-### Tunnel state lifecycle (vendor)
 
 ```mermaid
 stateDiagram-v2
     [*] --> Disconnected
-    Disconnected --> Connecting: vpn connect
-    Connecting --> Connected: tunnel up
-    Connecting --> Disconnected: failure
-    Connected --> Disconnected: vpn disconnect
+    Disconnected --> Connecting
+    Connecting --> Connected
+    Connecting --> Disconnected
+    Connected --> Disconnected
     Disconnected --> [*]
 ```
-
-### uvpn monitoring flow
 
 ```mermaid
 flowchart LR
     E[MonitorEngine] --> A[fortinet adapter]
-    A -->|forticlient vpn status| CLI[FortiClient CLI]
-    CLI -->|Connected / Connecting / Disconnected| A
-    E --> P[Universal probes]
+    A --> CLI[FortiClient CLI status]
+    E --> P[Probes]
     A --> D[Diagnosis]
     P --> D
 ```
@@ -85,60 +70,77 @@ flowchart LR
 
 ## 1. Product overview
 
-FortiClient provides SSL/IPsec VPN, ZTNA, and EMS telemetry. VPN status is exposed via **`forticlient vpn`** subcommands (Linux) or **FortiVPN.exe --cli** (Windows).
+FortiClient combines remote access VPN (SSL and IPsec), optional ZTNA agents, and endpoint telemetry when registered to FortiClient EMS. VPN profiles are normally created in the GUI or pushed by EMS; the CLI connects existing profiles rather than defining new tunnel definitions on Windows.
 
-**uvpn relevance:** `status` subcommand stdout parsed per FortiClient 7.x fixtures.
+**Monitoring relevance:** The `status` subcommand prints per-tunnel state lines uvpn maps to connected / connecting / disconnected.
 
 ---
 
 ## 2. Installation and deployment
 
-Install FortiClient from Fortinet or EMS deployment. Ensure VPN CLI on PATH:
+Install via Fortinet installer, EMS deployment package, or MDM. Ensure the VPN CLI is reachable:
 
-| Platform | Typical binary |
-|----------|----------------|
-| Linux | `forticlient` |
-| macOS | `/opt/forticlient/fortivpn` or EMS-managed path |
-| Windows | `FortiVPN.exe` |
+| Platform | Typical entry point |
+|----------|---------------------|
+| Linux | `forticlient` front-end with `vpn` subcommand |
+| Windows | `FortiVPN.exe` under the FortiClient program directory |
+| macOS | `/opt/forticlient/fortivpn` or EMS-managed equivalent |
 
-Set `fortinet_binary` when not on PATH.
+Set `fortinet_binary` when multiple copies exist or PATH is restricted.
 
 ---
 
 ## 3. CLI and management interface
 
-**Linux** ([41299](https://docs.fortinet.com/document/forticlient/7.4.7/administration-guide/41299/forticlient-linux-cli-commands)):
+### Linux VPN subcommand tree
+
+The Linux administration material documents a dedicated VPN CLI mode:
 
 ```text
 forticlient vpn [command]
-
-Commands: connect | disconnect | edit | list | remove | status | view
 ```
 
-**Windows** ([95591](https://docs.fortinet.com/document/forticlient/7.4.7/administration-guide/95591/forticlient-windows-cli-commands)):
+| Subcommand | Purpose |
+|------------|---------|
+| `connect` | Attach to a named profile; optional username, password, save-password, always-up, auto-connect flags |
+| `disconnect` | Tear down active VPN |
+| `edit` | Create or modify a profile locally |
+| `list` | Enumerate configured profiles |
+| `remove` | Delete a profile |
+| `status` | **Print current VPN state (uvpn primary)** |
+| `view` | Show profile parameters |
+
+### Windows VPN CLI
+
+Windows remote-access automation uses FortiVPN in CLI mode. Pre-provisioned tunnels only—CLI cannot author new tunnel definitions.
 
 ```text
-FortiVPN.exe --cli --status [--tunnel <name>]
+FortiVPN.exe --cli --status [--tunnel <profile-name>]
 ```
 
-Example output:
+Example multi-tunnel output:
 
 ```text
-sslvpn test :: Connected
+machine :: Disconnected
+sslvpn test :: Connecting
 ipsec :: Disconnected
 ```
 
-uvpn tries configured binary + `fortivpn vpn status` / `forticlient vpn status` per platform.
+When `--tunnel` is supplied, only that profile is evaluated.
+
+uvpn attempts, in order: configured `fortinet_binary`, then `fortivpn vpn status`, then `forticlient vpn status`.
 
 ---
 
 ## 4. Connection lifecycle
 
-| State (vendor) | Meaning |
+| Reported state | Meaning |
 |----------------|---------|
-| Connected | Tunnel up |
-| Connecting | In progress |
-| Disconnected | No session |
+| Connected | Tunnel established |
+| Connecting | Negotiation in progress |
+| Disconnected | No active session for that profile |
+
+Multiple profiles may show different states simultaneously on Windows.
 
 ---
 
@@ -146,36 +148,39 @@ uvpn tries configured binary + `fortivpn vpn status` / `forticlient vpn status` 
 
 | Layer | Method |
 |-------|--------|
-| Control plane | `vpn status` / `--cli --status` |
-| Data plane | ICMP probes |
-| EMS telemetry | FortiESNAC (out of uvpn scope) |
+| Control plane | Parsed `status` / `--cli --status` text |
+| Data plane | ICMP probes to configured remote IPs |
+| EMS telemetry | Separate FortiESNAC registration channel—not used by uvpn |
 
 ---
 
 ## 6. Authentication and certificates
 
-Tunnels configured via GUI/EMS; CLI `connect` accepts `--user`, `--password`, cert thumbprint (Windows). uvpn monitors only.
+Profiles store authentication mode (password, certificate, etc.). The Linux `connect` command accepts inline credentials; Windows CLI can pass username, password, certificate thumbprint, and save-credentials flags.
+
+uvpn performs read-only status checks.
 
 ---
 
 ## 7. Logging and diagnostics
 
-FortiClient logs via GUI diagnostic tools; EMS can collect remotely.
+Interactive diagnostics live in the FortiClient GUI. EMS may collect logs centrally. Endpoint registration status is available via FortiESNAC `--details` on Windows—outside uvpn’s VPN status path.
 
 ---
 
 ## 8. Exit codes and return values
 
-FortiCLI exit codes vary by subcommand; uvpn prioritizes parsed status text over exit code when stdout is recognized.
+Subcommand exit codes are not fully enumerated in public excerpts; uvpn treats recognizable stdout as authoritative. Empty or unknown output with non-zero exit → ambiguous or unsupported.
 
 ---
 
-## 9. Vendor troubleshooting
+## 9. Product troubleshooting
 
-| Issue | Action |
-|-------|--------|
-| Unknown CLI layout | Pin FortiClient to matrix version or use `generic` |
-| EMS-only profiles | Ensure tunnel pre-provisioned before `connect` |
+| Observation | Action |
+|-------------|--------|
+| Empty status | Confirm profile exists (`list`) and client version matches matrix |
+| EMS-only profile not visible locally | Sync policy or open GUI once before CLI monitoring |
+| Parsing failures after upgrade | Re-verify against 7.4.x fixtures or pin binary |
 
 ---
 
@@ -199,23 +204,24 @@ forticlient vpn status
 uvpn check
 ```
 
-| Validation | Fixture-validated FortiClient 7.x stdout |
+Fixtures: `tests/fixtures/adapters/fortinet/`
 
 ---
 
 ## Supported versions
 
-[adapter-version-matrix.md](../architecture/adapter-version-matrix.md) — FortiClient **7.x** for v1.0.0.
+[adapter-version-matrix.md](../architecture/adapter-version-matrix.md) — FortiClient **7.x**.
 
 ---
 
 ## uvpn troubleshooting
 
-- CLI not found → `fortinet_binary` or `generic`.
-- Connected + LAN fail → `TUNNEL_DOWN`.
+- CLI missing → set `fortinet_binary` or fall back to `generic` for probes-only.
+- Connected in CLI but LAN probe fails → `TUNNEL_DOWN`.
 
 ---
 
 ## Related
 
+- [adapter-version-matrix.md](../architecture/adapter-version-matrix.md)
 - [plugin-adapters.md](../architecture/plugin-adapters.md)

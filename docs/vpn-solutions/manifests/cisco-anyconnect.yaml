@@ -1,0 +1,7 @@
+platform: cisco_anyconnect
+pinned_version: "Secure Client 5.x"
+sources:
+  - id: sc5-local-cli
+    title: "Secure Client Administration — local CLI"
+    sections: [3]
+    last_verified: "2026-05-31"

@@ -1,0 +1,11 @@
+platform: fortinet
+pinned_version: "FortiClient 7.4.x"
+sources:
+  - id: forticlient-linux-cli
+    title: "FortiClient Administration — Linux CLI commands"
+    sections: [3]
+    last_verified: "2026-05-31"
+  - id: forticlient-windows-cli
+    title: "FortiClient Administration — Windows CLI commands"
+    sections: [3]
+    last_verified: "2026-05-31"

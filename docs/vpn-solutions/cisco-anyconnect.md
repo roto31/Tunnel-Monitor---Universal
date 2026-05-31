@@ -1,80 +1,61 @@
 # Cisco AnyConnect / Secure Client
 
-**vpn_type:** `cisco_anyconnect`
+**vpn_type:** `cisco_anyconnect`  
+**Reference:** Cisco Secure Client 5.x administration — local CLI customization chapter
 
 ## uvpn at a glance
 
-Invokes Cisco Secure Client **`vpn state`** (and `vpn stats` for statistics) on Linux/macOS SSL VPN **client** hosts — not ASA site-to-site on a router.
+Invokes **`vpn state`** (and **`vpn stats`** for statistics) on the Secure Client CLI binary. Scope: **SSL VPN client on Linux/macOS endpoints**—not ASA site-to-site on network appliances.
 
 ---
 
-## Vendor documentation index
+## Incorporated reference map
 
-| Vendor section | Official document | URL |
-|----------------|-------------------|-----|
-| Admin guide (5.x) | Cisco Secure Client Admin Guide | https://www.cisco.com/c/en/us/td/docs/security/vpn_client/anyconnect/Cisco-Secure-Client-5/admin/guide/b-cisco-secure-client-admin-guide-5-0/customize-localize-anyconnect.html |
-| CLI customization | Localize / CLI chapter (same guide) | https://www.cisco.com/c/en/us/td/docs/security/vpn_client/anyconnect/Cisco-Secure-Client-5/admin/guide/b-cisco-secure-client-admin-guide-5-0/customize-localize-anyconnect.html |
-| Product page | Cisco Secure Client | https://www.cisco.com/c/en/us/products/security/anyconnect-secure-mobility-client/index.html |
+| Topic | Source material (maintainer record) | Sections |
+|-------|--------------------------------------|----------|
+| Local CLI | Secure Client 5 admin guide — CLI / state | §3 |
+| Client deployment | Secure Client installation guides | §2 |
+| Profile model | Secure Client profile XML / headend | §4, §6 |
 
 ---
 
-## Diagrams (vendor + uvpn)
-
-### Client-to-headend architecture (vendor)
+## Diagrams
 
 ```mermaid
 flowchart LR
-    subgraph endpoint [Endpoint]
-        SC[Cisco Secure Client]
-        VPN[vpn CLI]
-        SC --- VPN
-    end
-    subgraph headend [Enterprise headend]
-        FTD[ASA / FTD / headend cluster]
-    end
-    subgraph resources [Protected resources]
-        APP[Internal apps / LAN]
-    end
-    SC -->|SSL / IPsec VPN| FTD
-    FTD --> APP
+    SC[Secure Client] -->|SSL VPN| HEAD[Enterprise headend]
+    HEAD --> APP[Internal resources]
+    uvpn -->|vpn state| SC
 ```
-
-### Session lifecycle (vendor)
 
 ```mermaid
 stateDiagram-v2
     [*] --> Disconnected
-    Disconnected --> Connecting: user or script connect
-    Connecting --> Connected: profile auth OK
-    Connecting --> Disconnected: auth fail
-    Connected --> Reconnecting: network blip
-    Reconnecting --> Connected: session restored
-    Connected --> Disconnected: disconnect
+    Disconnected --> Connecting
+    Connecting --> Connected
+    Connecting --> Disconnected
+    Connected --> Reconnecting
+    Reconnecting --> Connected
+    Connected --> Disconnected
     Disconnected --> [*]
 ```
-
-### vpn CLI monitoring (vendor + uvpn)
 
 ```mermaid
 sequenceDiagram
     participant U as uvpn
     participant V as vpn CLI
     participant SC as Secure Client
-    U->>V: vpn state
+    U->>V: state
     V->>SC: query session
-    SC-->>V: Connected / Disconnected
+    SC-->>V: status text
     V-->>U: stdout
-    U->>U: universal probes
-    U-->>U: combined diagnosis
 ```
-
-### uvpn monitoring flow
 
 ```mermaid
 flowchart LR
-    E[MonitorEngine] --> A[cisco_anyconnect adapter]
-    A -->|vpn state| CLI[vpn binary]
-    E --> P[Probes LAN/WAN/DDNS]
+    E[MonitorEngine] --> A[cisco adapter]
+    A --> CLI[vpn state]
+    E --> P[Probes]
     A --> D[Diagnosis]
     P --> D
 ```
@@ -83,35 +64,41 @@ flowchart LR
 
 ## 1. Product overview
 
-Cisco Secure Client (formerly AnyConnect) provides SSL/IPsec VPN to enterprise headends. Local **`vpn`** CLI reports session state for automation.
+Cisco Secure Client (formerly AnyConnect) terminates remote access on ASA, FTD, or vendor headends. The local **`vpn`** executable exposes text commands for automation and scripting when profiles are pre-deployed.
 
-**uvpn scope:** Client on monitoring host — for site-to-site IPsec on a gateway use `ipsec` adapter or `generic`.
+uvpn reads session state—it does not initiate connects.
 
 ---
 
 ## 2. Installation and deployment
 
-Install Secure Client per Cisco package for macOS/Linux. Typical binary paths:
+Install Secure Client via corporate package or MDM. Typical CLI path:
 
-| OS | Path |
-|----|------|
+| OS | Binary |
+|----|--------|
 | Linux | `/opt/cisco/secureclient/bin/vpn` |
-| macOS | `/opt/cisco/secureclient/bin/vpn` |
+| macOS | Same tree under `/opt/cisco/secureclient/bin/vpn` |
 
-Set `cisco_vpn_binary` in config if non-standard.
+Configure `cisco_vpn_binary` if installed elsewhere.
+
+Profiles must exist before `vpn connect` automation; uvpn only requires `vpn state` readability.
 
 ---
 
 ## 3. CLI and management interface
 
-**Documented CLI** (admin guide — local CLI / state):
+Documented local commands include:
 
-```bash
-vpn state
-vpn stats
-```
+| Command | Purpose |
+|---------|---------|
+| `vpn state` | **Primary uvpn probe** — reports connection state |
+| `vpn stats` | Byte and session counters (statistics collection) |
+| `vpn connect …` | Start session (out of uvpn scope) |
+| `vpn disconnect` | Stop session |
 
-Output includes connection state (connected / disconnected / reconnecting). uvpn parses stdout for session status.
+Output strings vary by platform and profile; adapter parses common connected / disconnected / reconnecting tokens.
+
+Run as the user context that owns the active VPN session (important on macOS keychain-backed profiles).
 
 ---
 
@@ -119,9 +106,11 @@ Output includes connection state (connected / disconnected / reconnecting). uvpn
 
 | State | Meaning |
 |-------|---------|
-| Connected | Active VPN session |
+| Connected | Tunnel active |
 | Disconnected | No session |
-| Reconnecting | Session rebuild |
+| Connecting / Reconnecting | Transitional—may map to yellow traffic light until probes confirm |
+
+Always-on and on-demand behaviors depend on headend policy in the profile XML.
 
 ---
 
@@ -129,36 +118,37 @@ Output includes connection state (connected / disconnected / reconnecting). uvpn
 
 | Layer | Method |
 |-------|--------|
-| Control plane | `vpn state` |
+| Control plane | `vpn state` stdout |
 | Statistics | `vpn stats` |
-| Data plane | Universal probes |
+| Data plane | ICMP / DDNS probes |
 
 ---
 
 ## 6. Authentication and certificates
 
-Profile-based auth (cert, SAML, password) — configured in Secure Client profile XML. uvpn does not authenticate.
+Profiles embed authentication server lists, certificate trust, and SAML/Posture settings. uvpn does not modify profiles.
 
 ---
 
 ## 7. Logging and diagnostics
 
-Client logs under OS-specific Cisco log directories; enable diagnostic logging via admin policy.
+Client diagnostic logs are enabled via headend policy or local preference panes—not via `vpn state`.
 
 ---
 
 ## 8. Exit codes and return values
 
-Non-zero `vpn` exit when not installed or no active profile — uvpn surfaces `supported=False` or daemon errors.
+Non-zero exit when binary missing or no profile loaded. uvpn distinguishes unsupported install from disconnected session via adapter logic.
 
 ---
 
-## 9. Vendor troubleshooting
+## 9. Product troubleshooting
 
-| Issue | Action |
-|-------|--------|
-| CLI not found | Install Secure Client; set `cisco_vpn_binary` |
-| State disconnected | User must connect profile first |
+| Observation | Action |
+|-------------|--------|
+| Command not found | Verify Secure Client install path |
+| State disconnected while user sees VPN up | Run check under same OS user / GUI session |
+| Connected + LAN probe fail | Split routing or full-tunnel policy gap |
 
 ---
 
@@ -173,6 +163,8 @@ Non-zero `vpn` exit when not installed or no active profile — uvpn surfaces `s
 }
 ```
 
+For appliance IPsec site-to-site on a gateway host, use `ipsec` adapter or `generic` from a routed LAN—not this client adapter.
+
 ---
 
 ## uvpn monitoring
@@ -186,17 +178,17 @@ uvpn check && uvpn explain
 
 ## Supported versions
 
-Cisco Secure Client 5.x CLI documented in admin guide linked above.
+Secure Client 5.x local CLI as documented in administration guide for your release train.
 
 ---
 
 ## uvpn troubleshooting
 
-- Run `vpn` as user with active VPN session (keychain/session context on macOS).
-- Connected + LAN fail → `TUNNEL_DOWN`.
+- Wrong user context → run uvpn as session owner or use launchd user agent.
+- Probe failure → `TUNNEL_DOWN`.
 
 ---
 
 ## Related
 
-- [cisco-anyconnect.md](cisco-anyconnect.md) wiki mirror
+- [plugin-adapters.md](../architecture/plugin-adapters.md)

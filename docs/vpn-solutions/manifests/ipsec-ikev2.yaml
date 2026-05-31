@@ -1,0 +1,7 @@
+platform: ipsec
+pinned_version: "strongSwan 5.9+"
+sources:
+  - id: swanctl-reference
+    title: "strongSwan swanctl reference"
+    sections: [3, 4]
+    last_verified: "2026-05-31"

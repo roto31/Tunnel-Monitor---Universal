@@ -1,0 +1,7 @@
+platform: openvpn
+pinned_version: "OpenVPN 2.6 community"
+sources:
+  - id: openvpn-management
+    title: "OpenVPN Management Interface specification"
+    sections: [3, 4]
+    last_verified: "2026-05-31"

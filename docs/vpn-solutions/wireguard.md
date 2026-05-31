@@ -1,77 +1,56 @@
 # WireGuard
 
-**vpn_type:** `wireguard`
+**vpn_type:** `wireguard`  
+**Reference:** WireGuard protocol specification; wireguard-tools `wg(8)` / `wg-quick(8)`
 
 ## uvpn at a glance
 
-Parses `wg show <interface> dump` for latest handshake and transfer stats. Handshake age &lt; 180s ⇒ connected (heuristic); always confirm with `remote_lan_ip` ping.
+Runs `wg show <interface> dump` and treats recent peer handshake as connected (default heuristic: handshake age under 180 seconds). Always confirm with LAN probes.
 
 ---
 
-## Vendor documentation index
+## Incorporated reference map
 
-| Vendor section | Official document | URL |
-|----------------|-------------------|-----|
-| Protocol | WireGuard protocol | https://www.wireguard.com/protocol/ |
-| Quick start | WireGuard installation | https://www.wireguard.com/install/ |
-| wg(8) man page | wireguard-tools wg | https://manpages.debian.org/bookworm/wireguard-tools/wg.8.en.html |
-| wg-quick(8) | Interface bring-up | https://manpages.debian.org/bookworm/wireguard-tools/wg-quick.8.en.html |
+| Topic | Source material (maintainer record) | Sections |
+|-------|--------------------------------------|----------|
+| Protocol cryptography | WireGuard protocol document | §1 |
+| `wg` dump format | wireguard-tools man page wg(8) | §3 |
+| Interface bring-up | wg-quick(8) | §2 |
 
 ---
 
-## Diagrams (vendor + uvpn)
-
-### Interface model (vendor)
+## Diagrams
 
 ```mermaid
-flowchart TB
-    subgraph host [Linux / macOS host]
-        IF[wg0 interface]
-        WG[wg userspace / kernel module]
-        IF --- WG
-    end
-    subgraph peers [Peers]
-        P1[Remote gateway peer]
-        P2[Optional second peer]
-    end
-    WG <-->|UDP encrypted| P1
-    WG <-->|UDP encrypted| P2
+flowchart LR
+    IF[wg0 interface] <-->|UDP| PEER[remote peer]
+    uvpn -->|wg show dump| IF
 ```
-
-### Handshake and data (vendor)
 
 ```mermaid
 sequenceDiagram
-    participant IF as wg0
-    participant P as Peer endpoint
-    IF->>P: Handshake initiation
-    P-->>IF: Handshake response
+    participant IF as local interface
+    participant P as peer
+    IF->>P: handshake
+    P-->>IF: response
     Note over IF,P: latest handshake timestamp updated
-    IF->>P: Encrypted transport
-    P-->>IF: Encrypted transport
 ```
-
-### Connection lifecycle (vendor)
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Down: interface down
-    Down --> Up: wg-quick up wg0
-    Up --> Active: recent handshake
-    Up --> Stale: handshake older than keepalive
-    Stale --> Active: traffic / keepalive
+    [*] --> Down
+    Down --> Up: wg-quick up
+    Up --> Active: fresh handshake
+    Up --> Stale: old handshake
     Active --> Down: wg-quick down
     Down --> [*]
 ```
 
-### uvpn monitoring flow
-
 ```mermaid
 flowchart LR
     E[MonitorEngine] --> A[wireguard adapter]
-    A -->|wg show wg0 dump| WG[wg CLI]
-    WG -->|handshake age| A
-    E --> P[Ping remote_lan_ip]
+    A --> WG[wg CLI]
+    E --> P[Probes]
     A --> D[Diagnosis]
     P --> D
 ```
@@ -80,34 +59,36 @@ flowchart LR
 
 ## 1. Product overview
 
-WireGuard is a modern VPN protocol using UDP and cryptokey routing. User-space tools **`wg`** and **`wg-quick`** manage interfaces (e.g. `wg0`).
+WireGuard is a UDP-based VPN using modern Curve25519 key agreement and ChaCha20-Poly1305 encapsulation. Interfaces are managed with **`wg`** (configuration) and **`wg-quick`** (bootstrapping from config files).
 
-**uvpn relevance:** Peer handshake timestamp and rx/tx from `wg show dump`.
+There is no separate “session connected” string—liveness is inferred from crypto handshakes and traffic counters.
 
 ---
 
 ## 2. Installation and deployment
 
-Install `wireguard-tools` package on Linux; WireGuard app or tools on macOS. Bring interface up:
+Install `wireguard-tools` (or platform equivalent). Create interface config under `/etc/wireguard/wg0.conf` (typical). Bring up:
 
 ```bash
 wg-quick up wg0
 ```
 
-Set `wireguard_interface` in uvpn config to match.
+Set `wireguard_interface` in uvpn to the interface name (without path).
 
 ---
 
 ## 3. CLI and management interface
 
-**wg show dump columns** ([wg(8)](https://manpages.debian.org/bookworm/wireguard-tools/wg.8.en.html)):
+`wg show <iface> dump` emits tab-separated rows:
 
-| Field | Meaning |
-|-------|---------|
-| interface | Private key, public key, listen port, fwmark |
-| peer | Public key, preshared key, endpoint, allowed IPs, latest handshake, transfer, persistent keepalive |
+| Row type | Fields (conceptual) |
+|----------|---------------------|
+| interface | private-key, public-key, listen-port, fwmark |
+| peer | public-key, preshared-key, endpoint, allowed-ips, latest-handshake, rx-bytes, tx-bytes, persistent-keepalive |
 
-uvpn command: `wg show <interface> dump`
+**latest-handshake** is Unix epoch seconds of last successful handshake—uvpn converts to age.
+
+`wg show` without `dump` provides human-readable summaries; uvpn uses `dump` for parsing stability.
 
 ---
 
@@ -115,9 +96,12 @@ uvpn command: `wg show <interface> dump`
 
 | Condition | Interpretation |
 |-----------|----------------|
-| Recent handshake | Tunnel active |
-| No handshake / stale | Disconnected or idle peer |
-| Interface down | Not running |
+| Interface absent | Not running |
+| No handshake timestamp | Never connected or peer down |
+| Handshake within keepalive window | Active |
+| Stale handshake | Possibly idle peer or UDP path issue |
+
+Persistent keepalive values in config affect how quickly stale is detected.
 
 ---
 
@@ -125,36 +109,37 @@ uvpn command: `wg show <interface> dump`
 
 | Layer | Method |
 |-------|--------|
-| Control plane | Handshake age from `wg show` |
-| Data plane | ICMP to remote LAN/WAN |
+| Control plane | Handshake age heuristic (**uvpn-extended** threshold) |
 | Statistics | rx/tx bytes per peer |
+| Data plane | ICMP to remote LAN |
 
 ---
 
 ## 6. Authentication and certificates
 
-WireGuard uses Curve25519 key pairs — pre-shared keys optional. uvpn does not manage keys.
+WireGuard uses pre-shared public keys in config—no username/password phase. uvpn does not manage keys.
 
 ---
 
 ## 7. Logging and diagnostics
 
-WireGuard kernel module logs via `dmesg` / `journalctl`; uvpn adapter does not tail kernel logs by default.
+Kernel and module messages appear in system logs; `wg` itself is quiet. Use `tcpdump` on UDP listen port for path debugging outside uvpn.
 
 ---
 
 ## 8. Exit codes and return values
 
-`wg` returns non-zero if interface missing — uvpn reports `supported=False` or daemon down.
+`wg` exits non-zero when interface missing—uvpn reports unsupported or daemon down.
 
 ---
 
-## 9. Vendor troubleshooting
+## 9. Product troubleshooting
 
-| Issue | Action |
-|-------|--------|
-| `wg: interface wg0 not found` | Start interface or fix `wireguard_interface` |
-| Handshake stale | Peer down, NAT, or wrong endpoint |
+| Observation | Action |
+|-------------|--------|
+| Interface not found | Start `wg-quick up` or fix interface name |
+| Handshake never updates | Check endpoint IP, firewall UDP, peer keys |
+| Handshake fresh but LAN fails | AllowedIPs / routing |
 
 ---
 
@@ -182,17 +167,17 @@ uvpn check
 
 ## Supported versions
 
-wireguard-tools 1.0+ on Linux/macOS with `wg` in PATH.
+wireguard-tools 1.0+ with `wg` in PATH.
 
 ---
 
 ## uvpn troubleshooting
 
-- Wrong interface name → fix config.
-- Handshake OK but LAN down → routing / AllowedIPs — diagnosis `TUNNEL_DOWN`.
+- Wrong interface → fix config key.
+- Stale handshake + LAN OK → may still be HEALTHY if traffic flows; tune threshold only in adapter code with care.
 
 ---
 
 ## Related
 
-- [RFC note](../architecture/research-vpn-platforms.md) — WireGuard is not RFC 7539
+- [research-vpn-platforms.md](../architecture/research-vpn-platforms.md)

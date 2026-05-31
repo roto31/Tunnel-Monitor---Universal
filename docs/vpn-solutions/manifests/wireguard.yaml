@@ -1,0 +1,11 @@
+platform: wireguard
+pinned_version: "wireguard-tools 1.x"
+sources:
+  - id: wg-man-page
+    title: "wireguard-tools wg(8) manual"
+    sections: [3]
+    last_verified: "2026-05-31"
+  - id: wg-protocol
+    title: "WireGuard protocol specification"
+    sections: [1]
+    last_verified: "2026-05-31"

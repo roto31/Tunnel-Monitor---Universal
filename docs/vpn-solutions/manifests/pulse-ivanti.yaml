@@ -1,0 +1,18 @@
+platform: pulse
+pinned_version: "ISAC 22.x"
+sources:
+  - id: isac-install
+    title: "ISAC Administration — Installation Overview"
+    sections: [2]
+    last_verified: "2026-05-31"
+  - id: isac-cli-launcher
+    title: "ISAC Administration — Command-line Launcher"
+    sections: [3, 6, 8]
+    last_verified: "2026-05-31"
+  - id: isac-linux-cli
+    title: "ISAC Linux Quick Start — Command Line"
+    sections: [3.2]
+    last_verified: "2026-05-31"
+retired_portals:
+  - name: "Pulse Secure docs portal (legacy hostname)"
+    note: "Retired; content superseded by Ivanti product help"

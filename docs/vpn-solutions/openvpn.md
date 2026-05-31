@@ -1,77 +1,49 @@
 # OpenVPN
 
-**vpn_type:** `openvpn`
+**vpn_type:** `openvpn`  
+**Reference:** OpenVPN 2.x community management interface and protocol overview
 
 ## uvpn at a glance
 
-Uses the OpenVPN **management interface** (`state` / `status` over TCP) when configured; otherwise process-only detection. Always validate with universal probes to `remote_lan_ip`.
+Queries the OpenVPN **management TCP socket** for `state` and optional `status`. Without management enabled, only weak process detection remains—configure `openvpn_management` for production monitoring.
 
 ---
 
-## Vendor documentation index
+## Incorporated reference map
 
-| Vendor section | Official document | URL |
-|----------------|-------------------|-----|
-| Management interface | OpenVPN Management Interface | https://openvpn.net/community-docs/management-interface.html |
-| Protocol overview | OpenVPN protocol overview | https://openvpn.net/community-docs/openvpn-protocol--overview.html |
-| Reference manual | OpenVPN 2.6 man page | https://openvpn.net/community-resources/reference-manual-for-openvpn-2-6/ |
+| Topic | Source material (maintainer record) | Sections |
+|-------|--------------------------------------|----------|
+| Management interface | OpenVPN community — management interface spec | §3, §4, §8 |
+| Protocol / data channel | OpenVPN protocol overview | §1 |
+| Reference manual | OpenVPN 2.6 option reference | §2 |
 
 ---
 
-## Diagrams (vendor + uvpn)
-
-### TLS tunnel architecture (vendor)
+## Diagrams
 
 ```mermaid
 flowchart LR
-    subgraph client [OpenVPN client]
-        OC[openvpn process]
-        MGMT[management socket]
-        OC --- MGMT
-    end
-    subgraph server [OpenVPN server]
-        OS[openvpn server]
-    end
-    subgraph net [Networks]
-        RT[Remote LAN routes]
-    end
-    OC <-->|TLS data channel| OS
-    OS --> RT
+    OC[openvpn process] <-->|TLS data channel| OS[remote server]
+    MGMT[management TCP] --- OC
+    uvpn --> MGMT
 ```
-
-### Management interface (vendor)
-
-```mermaid
-flowchart TB
-    ADMIN[Local admin / uvpn] -->|TCP| MGMT[management 127.0.0.1:7505]
-    MGMT --> OC[openvpn daemon]
-    MGMT -->|state| SM[State machine]
-    MGMT -->|status| STATS[Byte counts / routes]
-    MGMT -->|log| LOG[Recent log lines]
-```
-
-### Connection state machine (vendor)
 
 ```mermaid
 stateDiagram-v2
     [*] --> CONNECTING
-    CONNECTING --> CONNECTED: TLS + auth OK
-    CONNECTING --> RECONNECTING: link loss
-    RECONNECTING --> CONNECTED: session restored
-    CONNECTED --> EXITING: stop / kill
-    CONNECTING --> EXITING: fatal error
+    CONNECTING --> CONNECTED
+    CONNECTING --> RECONNECTING
+    RECONNECTING --> CONNECTED
+    CONNECTED --> EXITING
+    CONNECTING --> EXITING
     EXITING --> [*]
 ```
-
-### uvpn monitoring flow
 
 ```mermaid
 flowchart LR
     E[MonitorEngine] --> A[openvpn adapter]
-    A -->|TCP state command| MGMT[management socket]
-    MGMT -->|CONNECTED?| A
-    E --> P[Universal probes]
-    P --> LAN[remote_lan_ip]
+    A --> MGMT[management socket]
+    E --> P[Probes]
     A --> D[Diagnosis]
     P --> D
 ```
@@ -80,48 +52,44 @@ flowchart LR
 
 ## 1. Product overview
 
-OpenVPN creates encrypted tunnels using SSL/TLS. The **management interface** exposes real-time client state on a local TCP socket (default often `127.0.0.1:7505`).
+OpenVPN builds encrypted tunnels over UDP or TCP using OpenSSL/TLS for control channel setup. The **management interface** is a text protocol on a local TCP port allowing privileged clients to query live state without parsing log files.
 
-**uvpn relevance:** Parses `state` for `CONNECTED`; optional `status` for byte counters.
+uvpn treats `CONNECTED` in management state output as control-plane up.
 
 ---
 
 ## 2. Installation and deployment
 
-Deploy OpenVPN client or server per community / vendor package for your OS. Enable management in config:
+Install OpenVPN from distribution packages or vendor bundles. Enable management in client or server config:
 
 ```text
 management 127.0.0.1 7505
 management-query-passwords
 ```
 
-Without `management`, uvpn cannot query session state reliably.
+Bind address and port must match `openvpn_management` in uvpn config. Restrict management to localhost on shared hosts.
 
 ---
 
 ## 3. CLI and management interface
 
-**Management commands** ([management interface](https://openvpn.net/community-docs/management-interface.html)):
+Connect with netcat or uvpn’s adapter to the management port. Line-oriented commands include:
 
-| Command | Purpose |
-|---------|---------|
-| `state` | Connection state machine (CONNECTING, CONNECTED, …) |
-| `status` | Routing table + byte counts |
-| `log` | Recent log lines |
-| `hold release` | Release hold after connect (if hold enabled) |
+| Command | Response content |
+|---------|------------------|
+| `state` | Current state machine position and description |
+| `status` | Routing table version, virtual addresses, byte counters |
+| `log` | Recent log events |
+| `help` | Available commands |
+| `quit` | Close management session |
 
-uvpn connects to `openvpn_management` host:port from config.
+After connect, read the greeting line before issuing commands. Some builds require `hold release` when `--management-hold` is configured.
 
 ---
 
 ## 4. Connection lifecycle
 
-| State (vendor) | Meaning |
-|----------------|---------|
-| CONNECTING | Negotiation in progress |
-| CONNECTED | Tunnel up |
-| RECONNECTING | Session rebuild |
-| EXITING | Shutting down |
+Documented client states include **CONNECTING**, **CONNECTED**, **RECONNECTING**, **EXITING**, and **SECONDARY** (secondary process). uvpn maps CONNECTED to tunnel-up; RECONNECTING may appear as degraded depending on probe results.
 
 ---
 
@@ -130,35 +98,36 @@ uvpn connects to `openvpn_management` host:port from config.
 | Layer | Method |
 |-------|--------|
 | Control plane | Management `state` |
-| Data plane | Ping `remote_lan_ip`, `remote_wan_ip` |
-| Logs | Management `log` or file tail (adapter) |
+| Throughput / routes | Management `status` (statistics collection) |
+| Data plane | ICMP probes |
 
 ---
 
 ## 6. Authentication and certificates
 
-Per OpenVPN config: TLS certs, username/password, 2FA plugins. uvpn does not authenticate — only monitors.
+Authentication stacks (certificates, username/password, MFA plugins) are configured in profile files—not via management queries. uvpn does not handle credentials.
 
 ---
 
 ## 7. Logging and diagnostics
 
-Management `log` command or `--log` file path in server/client config. uvpn includes recent lines in `state.json` when adapter collects logs.
+Management `log` returns recent events; file-based logs remain the source for deep troubleshooting. Increase `verb` in profile for detail.
 
 ---
 
 ## 8. Exit codes and return values
 
-OpenVPN process exit codes are OS-level; uvpn uses management state, not process exit, during checks.
+Process exit codes reflect daemon shutdown or fatal errors—not minute-to-minute tunnel health. uvpn prefers management state over PID checks.
 
 ---
 
-## 9. Vendor troubleshooting
+## 9. Product troubleshooting
 
-| Issue | Vendor direction |
-|-------|------------------|
-| Management refused | Check socket bind, firewall, `management` directive |
-| Stuck CONNECTING | Cert/auth failure — inspect OpenVPN log |
+| Observation | Action |
+|-------------|--------|
+| Connection refused on management port | Verify directive and that daemon is running |
+| Stuck CONNECTING | Inspect cert/auth in OpenVPN log |
+| CONNECTED but LAN down | Routing or `--redirect-gateway` scope |
 
 ---
 
@@ -182,23 +151,20 @@ OpenVPN process exit codes are OS-level; uvpn uses management state, not process
 uvpn preflight && uvpn check && uvpn statistics
 ```
 
-| Metric | Source |
-|--------|--------|
-| Connected | Management `state` |
-| Bytes / routes | Management `status` |
+Without management: use `"vpn_type": "generic"` if only ICMP matters.
 
 ---
 
 ## Supported versions
 
-OpenVPN 2.4+ with management interface. Use `generic` if management disabled.
+OpenVPN 2.4+ with management enabled.
 
 ---
 
 ## uvpn troubleshooting
 
-- Management unreachable → set correct host/port or use `"vpn_type": "generic"`.
-- CONNECTED but LAN fail → `TUNNEL_DOWN`.
+- Management disabled → enable or switch adapter.
+- State CONNECTED + probe fail → `TUNNEL_DOWN`.
 
 ---
 

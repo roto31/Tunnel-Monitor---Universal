@@ -1,78 +1,59 @@
 # IPsec / IKEv2
 
-**vpn_type:** `ipsec` or `ikev2`
+**vpn_type:** `ipsec` or `ikev2`  
+**Reference:** strongSwan swanctl documentation; RFC 7296 (IKEv2); RFC 4301 (IPsec architecture)
 
 ## uvpn at a glance
 
-Prefers **strongSwan** `swanctl --list-sas`; falls back to legacy `ipsec statusall`. IKE SA up ≠ traffic flowing — universal probes required.
+Prefers **`swanctl --list-sas`**; falls back to **`ipsec statusall`** on legacy starter deployments. Active CHILD security association required for connected—still verify with LAN probes.
 
 ---
 
-## Vendor documentation index
+## Incorporated reference map
 
-| Vendor section | Official document | URL |
-|----------------|-------------------|-----|
-| swanctl | strongSwan swanctl reference | https://docs.strongswan.org/docs/latest/swanctl/swanctl.html |
-| IKEv2 (standard) | RFC 7296 | https://www.rfc-editor.org/rfc/rfc7296 |
-| IPsec architecture | RFC 4301 | https://www.rfc-editor.org/rfc/rfc4301 |
-| strongSwan docs home | strongSwan documentation | https://docs.strongswan.org/ |
+| Topic | Source material (maintainer record) | Sections |
+|-------|--------------------------------------|----------|
+| swanctl commands | strongSwan documentation — swanctl | §3 |
+| IKEv2 protocol | RFC 7296 | §1, §4 |
+| IPsec architecture | RFC 4301 | §1 |
 
 ---
 
-## Diagrams (vendor + uvpn)
-
-### IKEv2 / IPsec architecture (vendor)
+## Diagrams
 
 ```mermaid
 flowchart LR
-    subgraph local [Local host]
-        CHARON[charon daemon]
-        SW[swanctl]
-        SW --> CHARON
-    end
-    subgraph remote [Remote gateway]
-        RGW[IKEv2 peer]
-    end
-    CHARON <-->|IKE_SA| RGW
-    CHARON <-->|CHILD_SA / ESP| RGW
+    SW[swanctl] --> CH[charon daemon]
+    CH <-->|IKE_SA| PEER[remote gateway]
+    CH <-->|CHILD_SA ESP| PEER
 ```
-
-### IKE and CHILD SA establishment (vendor)
 
 ```mermaid
 sequenceDiagram
-    participant SW as swanctl
     participant C as charon
-    participant P as Peer
-    SW->>C: initiate / up
+    participant P as peer
     C->>P: IKE_SA_INIT
     P-->>C: IKE_SA_INIT response
     C->>P: IKE_AUTH
-    P-->>C: IKE_AUTH + CHILD_SA
-    Note over C,P: CHILD_SA carries user traffic
+    P-->>C: CHILD_SA installed
 ```
-
-### Connection lifecycle (vendor)
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Idle: no SA
-    Idle --> IKE_UP: IKE_SA established
-    IKE_UP --> CHILD_UP: CHILD_SA installed
-    CHILD_UP --> Rekeying: rekey timer
-    Rekeying --> CHILD_UP: new SPI
-    CHILD_UP --> Idle: delete SA
+    [*] --> Idle
+    Idle --> IKE_UP
+    IKE_UP --> CHILD_UP
+    CHILD_UP --> Rekeying
+    Rekeying --> CHILD_UP
+    CHILD_UP --> Idle
     Idle --> [*]
 ```
-
-### uvpn monitoring flow
 
 ```mermaid
 flowchart LR
     E[MonitorEngine] --> A[ipsec adapter]
-    A -->|swanctl --list-sas| SW[swanctl]
-    SW -->|active CHILD_SA?| A
-    E --> P[Universal probes]
+    A --> SW[swanctl list-sas]
+    E --> P[Probes]
     A --> D[Diagnosis]
     P --> D
 ```
@@ -81,35 +62,52 @@ flowchart LR
 
 ## 1. Product overview
 
-Site-to-site and remote-access IPsec commonly use **IKEv2** for key exchange and **ESP** for data. **strongSwan** provides `swanctl` for VICI/swanctl-based control.
+IPsec VPNs negotiate **IKE** (Internet Key Exchange) to establish **Security Associations**. IKEv2 (RFC 7296) is the modern key-exchange framework; ESP encapsulates user traffic (RFC 4301 architecture).
 
-**uvpn relevance:** Parses active CHILD_SAs from `swanctl --list-sas`.
+**strongSwan** provides the `charon` daemon and `swanctl` control utility on Linux/BSD monitoring hosts.
 
 ---
 
 ## 2. Installation and deployment
 
-Install strongSwan + swanctl on gateway or client host. Configure connections in `/etc/swanctl/` (swanctl) or ipsec.conf (starter).
+Install strongSwan with swanctl (`swanctl` package on many distributions). Configure connections in `/etc/swanctl/` hierarchy (conf.d fragments) or migrate from legacy `ipsec.conf` + starter.
 
-Set `"ipsec_tool": "swanctl"` in uvpn config (default when available).
+Set uvpn `"ipsec_tool": "swanctl"` when both swanctl and legacy tools exist.
 
 ---
 
 ## 3. CLI and management interface
 
-**swanctl --list-sas** ([docs](https://docs.strongswan.org/docs/latest/swanctl/swanctl.html)) lists IKE and CHILD security associations.
+**Primary monitoring command**
 
-Legacy: **`ipsec statusall`** (starter/ipsec.conf deployments).
+```bash
+swanctl --list-sas
+```
+
+Lists IKE and CHILD SAs with SPIs, addresses, lifetimes, and algorithm names.
+
+**Legacy alternative**
+
+```bash
+ipsec statusall
+```
+
+Parses starter output when swanctl unavailable—less structured.
+
+uvpn does not invoke `swanctl --initiate`; read-only monitoring only.
 
 ---
 
 ## 4. Connection lifecycle
 
-| Phase | strongSwan signal |
-|-------|-------------------|
-| IKE_SA established | Parent SA in list-sas |
-| CHILD_SA active | Encapsulated traffic keys installed |
-| Rekey | New SPI, updated counters |
+| Phase | Meaning |
+|-------|---------|
+| IKE_SA | Control channel authenticated |
+| CHILD_SA | Traffic keys installed for selectors |
+| Rekey | SPI rotation before expiry |
+| Delete | SA removed; traffic stops |
+
+IKE up without matching CHILD_SA may still mean no usable tunnel.
 
 ---
 
@@ -117,40 +115,42 @@ Legacy: **`ipsec statusall`** (starter/ipsec.conf deployments).
 
 | Layer | Method |
 |-------|--------|
-| Control plane | `swanctl --list-sas` / `ipsec statusall` |
-| Data plane | Ping remote LAN/WAN |
+| Control plane | Active CHILD_SA in list output |
+| Data plane | ICMP probes |
+| Logs | journalctl on `charon` unit |
 
 ---
 
 ## 6. Authentication and certificates
 
-PSK, RSA certs, EAP — per connection config. uvpn monitors only.
+Authentication methods include pre-shared keys, public key certificates, and EAP variants—defined in swanctl connection blocks. uvpn does not manage credentials.
 
 ---
 
 ## 7. Logging and diagnostics
 
 ```bash
-journalctl -u strongswan-charon
+journalctl -u strongswan-charon -f
 swanctl --list-conns
 ```
 
-Adapter may collect journal snippets when configured.
+Increase charon debug classes in strongSwan.conf for negotiation traces.
 
 ---
 
 ## 8. Exit codes and return values
 
-Non-zero `swanctl` → no daemon or no SAs — map to `VPN_DAEMON_DOWN` or disconnected.
+swanctl returns error when daemon stopped or VICI socket missing—map to VPN_DAEMON_DOWN or unsupported.
 
 ---
 
-## 9. Vendor troubleshooting
+## 9. Product troubleshooting
 
-| Issue | Action |
-|-------|--------|
-| No CHILD_SA | Phase2 mismatch, PFS, traffic selectors |
-| SA up, no ping | Policy/routing — still `TUNNEL_DOWN` in uvpn |
+| Observation | Action |
+|-------------|--------|
+| No SAs listed | Check `--list-conns` and firewall UDP 500/4500 |
+| CHILD up, ping fails | Traffic selectors or routing |
+| swanctl missing | Install plugin package or use legacy tool with reduced detail |
 
 ---
 
@@ -165,6 +165,8 @@ Non-zero `swanctl` → no daemon or no SAs — map to `VPN_DAEMON_DOWN` or disco
 }
 ```
 
+Alias: `"vpn_type": "ikev2"`.
+
 ---
 
 ## uvpn monitoring
@@ -178,14 +180,14 @@ uvpn check
 
 ## Supported versions
 
-strongSwan 5.9+ with swanctl; legacy ipsec starter supported with reduced detail.
+strongSwan 5.9+ with swanctl recommended.
 
 ---
 
 ## uvpn troubleshooting
 
-- Use `ikev2` alias same as `ipsec`.
-- IKE up + LAN fail → `TUNNEL_DOWN`.
+- SA present + LAN fail → `TUNNEL_DOWN`.
+- Daemon down → `VPN_DAEMON_DOWN`.
 
 ---
 

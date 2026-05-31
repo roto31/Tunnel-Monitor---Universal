@@ -1,94 +1,60 @@
 # Palo Alto GlobalProtect
 
-**vpn_type:** `globalprotect` or `gp`
+**vpn_type:** `globalprotect` or `gp`  
+**Pinned app line:** GlobalProtect app 6.x (Linux user guide 6.3+ CLI semantics)
 
 ## uvpn at a glance
 
-Parses **`gpctl show status`** (macOS app bundle / legacy CLI) with fixture-validated output. Newer Linux clients may use **`globalprotect show --status`** — set `globalprotect_binary` accordingly; matrix documents gpctl path for v1.0.0.
+Default probe: **`gpctl show status`**. Linux 6.x packages may expose **`globalprotect show --status`** instead—override with `globalprotect_binary`. Parser uses fixture-validated Connected / Disconnected / Connecting strings.
 
 ---
 
-## Vendor documentation index
+## Incorporated reference map
 
-| Vendor section | Official document | URL |
-|----------------|-------------------|-----|
-| GlobalProtect home | GlobalProtect documentation | https://docs.paloaltonetworks.com/globalprotect |
-| Linux app CLI | Use the GlobalProtect App for Linux | https://docs.paloaltonetworks.com/globalprotect/user-guide/6-3/globalprotect-app-for-linux/use-the-globalprotect-app-for-linux |
-| Windows app | Use the GlobalProtect App for Windows | https://docs.paloaltonetworks.com/globalprotect/5-2/globalprotect-app-user-guide/globalprotect-app-for-windows/use-the-globalprotect-app-for-windows |
-| macOS app | GlobalProtect app for macOS user guide | https://docs.paloaltonetworks.com/globalprotect/user-guide/6-0/globalprotect-app-for-mac/ |
-| Administration | GlobalProtect administration | https://docs.paloaltonetworks.com/globalprotect/administration |
-
-Internal: [adapter-version-matrix.md](../architecture/adapter-version-matrix.md)
+| Topic | Source material (maintainer record) | Sections |
+|-------|--------------------------------------|----------|
+| Linux app CLI | GlobalProtect 6.3 Linux user guide | §3 |
+| Portal / gateway model | GlobalProtect administration | §1, §4 |
+| Windows / macOS app behavior | GlobalProtect user guides (tray, settings) | §5, §7 |
+| On-demand vs always-on | Portal agent configuration | §4 |
 
 ---
 
-## Diagrams (vendor + uvpn)
-
-### Portal and gateway architecture (vendor)
+## Diagrams
 
 ```mermaid
 flowchart LR
-    subgraph endpoint [Endpoint]
-        GP[GlobalProtect app]
-        CLI[gpctl or globalprotect CLI]
-        GP --- CLI
-    end
-    subgraph cloud [Palo Alto infrastructure]
-        PORTAL[GlobalProtect portal]
-        GW[GlobalProtect gateway]
-    end
-    PORTAL --> GW
-    GP -->|register / connect| PORTAL
-    GP -->|IPsec or SSL tunnel| GW
+    GP[GlobalProtect app] --> PORTAL[Portal]
+    PORTAL --> GW[Gateway]
+    GP -->|tunnel| GW
+    GW --> LAN[Internal networks]
 ```
-
-### On-demand vs always-on (vendor policy)
 
 ```mermaid
 flowchart TD
     POL[Portal policy] --> OND[On-demand]
     POL --> AON[Always-on]
-    OND --> USER[User clicks Connect]
-    AON --> AUTO[Auto connect at login]
-    USER --> TUN[Tunnel up]
-    AUTO --> TUN
+    OND --> USER[Manual connect]
+    AON --> AUTO[Login connect]
+    USER --> UP[Tunnel up]
+    AUTO --> UP
 ```
-
-### Connection lifecycle (vendor)
 
 ```mermaid
 stateDiagram-v2
     [*] --> Disconnected
-    Disconnected --> Connecting: portal / gateway negotiation
-    Connecting --> Connected: tunnel established
-    Connecting --> Disconnected: auth or gateway fail
-    Connected --> Disconnected: user disconnect or policy
+    Disconnected --> Connecting
+    Connecting --> Connected
+    Connecting --> Disconnected
+    Connected --> Disconnected
     Disconnected --> [*]
 ```
-
-### Status CLI paths (vendor)
-
-```mermaid
-flowchart LR
-    subgraph mac [macOS legacy uvpn default]
-        GPCTL[gpctl show status]
-    end
-    subgraph linux [Linux 6.x vendor doc]
-        GPC[globalprotect show --status]
-        GPD[globalprotect show --details]
-    end
-    GPCTL --> PARSE[Adapter parser]
-    GPC --> PARSE
-    GPD --> STATS[Extended stats optional]
-```
-
-### uvpn monitoring flow
 
 ```mermaid
 flowchart LR
     E[MonitorEngine] --> A[globalprotect adapter]
-    A -->|gpctl show status| CLI[GP CLI]
-    E --> P[Universal probes]
+    A --> CLI[gpctl or globalprotect CLI]
+    E --> P[Probes]
     A --> D[Diagnosis]
     P --> D
 ```
@@ -97,56 +63,78 @@ flowchart LR
 
 ## 1. Product overview
 
-GlobalProtect connects endpoints to Palo Alto Networks firewalls via portal/gateway. Status available via GUI tray, **`globalprotect` CLI** (Linux 6.x), or **`gpctl`** (macOS bundle tool).
+GlobalProtect is Palo Alto Networks’ remote access stack: endpoints register with a **portal**, receive policy, and build tunnels to one or more **gateways** on firewalls or cloud edges. Transports include SSL and IPsec depending on portal policy.
 
-**uvpn default:** `gpctl show status` when binary present.
+The endpoint agent exposes GUI status and command-line tools for automation. uvpn reads CLI status only—it does not manage portal configuration.
 
 ---
 
 ## 2. Installation and deployment
 
-Deploy GlobalProtect app via MDM or installer. Typical paths:
+Deploy via enterprise installer or MDM. Typical CLI locations:
 
 | OS | Binary |
 |----|--------|
-| macOS | `/Applications/GlobalProtect.app/Contents/Resources/gpctl` |
-| Linux (6.x) | `globalprotect` in PATH |
-| Linux (legacy) | `gpctl` if shipped with package |
+| macOS | `GlobalProtect.app/Contents/Resources/gpctl` |
+| Linux 6.x | `globalprotect` command in PATH |
+| Older Linux / macOS bundles | `gpctl` where shipped |
+
+Register `globalprotect_binary` when both tools exist.
 
 ---
 
 ## 3. CLI and management interface
 
-**Linux 6.3+** ([user guide](https://docs.paloaltonetworks.com/globalprotect/user-guide/6-3/globalprotect-app-for-linux/use-the-globalprotect-app-for-linux)):
+### Linux 6.3+ command set
+
+The Linux user material documents:
 
 ```bash
 globalprotect show --status
 globalprotect show --details
 ```
 
-Example:
+**Status example**
 
 ```text
 GlobalProtect status: Connected
-Assigned IP address: 192.168.1.132
-Gateway IP address: 192.168.1.180
 ```
 
-**uvpn adapter (v1.0 fixtures):** `gpctl show status` — output parsed for Connected/Disconnected/Connecting states.
+**Details example (extended telemetry)**
 
-Override with `globalprotect_binary` if using `globalprotect` CLI instead.
+```text
+Assigned IP address: 192.168.1.132
+Gateway IP address: 192.168.1.180
+Protocol: IPSec
+Uptime(sec): 231
+```
+
+### gpctl (uvpn default on many macOS installs)
+
+```bash
+gpctl show status
+```
+
+Fixture output uses phrases such as `Connected`, `Disconnected`, and transitional connecting states—see `tests/fixtures/adapters/globalprotect/`.
+
+When only `globalprotect` exists on Linux, point `globalprotect_binary` at that executable; uvpn does not auto-translate subcommand syntax between tools.
 
 ---
 
 ## 4. Connection lifecycle
 
-| State | Meaning |
-|-------|---------|
-| Connected | Portal + gateway session active |
-| Disconnected | No tunnel |
-| Connecting | Portal or gateway negotiation |
+| State | Description |
+|-------|-------------|
+| Disconnected | No active tunnel |
+| Connecting | Portal or gateway negotiation, certificate checks, MFA |
+| Connected | Tunnel carrying traffic per policy |
 
-On-demand vs always-on controlled by portal policy.
+**Portal connect methods**
+
+- **On-demand:** User initiates from tray or CLI.
+- **Always-on:** Agent connects at login or network change per portal agent configuration.
+
+Split-tunnel policies may mark the session Connected while specific remote subnets remain unreachable—uvpn LAN probes detect this.
 
 ---
 
@@ -154,36 +142,37 @@ On-demand vs always-on controlled by portal policy.
 
 | Layer | Method |
 |-------|--------|
-| Control plane | gpctl / globalprotect status |
-| Data plane | Universal probes |
-| Split tunnel | May show connected while LAN unreachable — uvpn uses combined diagnosis |
+| Control plane | Parsed CLI status |
+| Data plane | ICMP / DDNS probes |
+| Gateway list (GUI) | Informational only—not parsed by uvpn |
 
 ---
 
 ## 6. Authentication and certificates
 
-Portal auth: SAML, LDAP, cert, MFA per firewall config. uvpn does not authenticate.
+Portals enforce SAML, LDAP, RADIUS, client certificates, and MFA stacks configured on the firewall. uvpn does not participate in authentication—it reads post-auth session state.
 
 ---
 
 ## 7. Logging and diagnostics
 
-App **Collect Logs** / Strata Logging Service (admin-enabled). Linux/macOS report-an-issue flows in user guides.
+Agents can upload troubleshooting bundles when administrators enable log collection on the portal. Linux GUI supports “report an issue” workflows; CLI monitoring does not replace log upload for root-cause analysis.
 
 ---
 
 ## 8. Exit codes and return values
 
-CLI returns non-zero when app not running — adapter may report daemon down.
+Non-zero CLI exit commonly indicates the agent is not running or the portal is unreachable. uvpn maps missing binary to `supported=False`.
 
 ---
 
-## 9. Vendor troubleshooting
+## 9. Product troubleshooting
 
-| Issue | Action |
-|-------|--------|
-| gpctl missing on Linux | Use `globalprotect show --status` and set binary override |
-| Portal unreachable | Check DNS, cert trust, portal URL |
+| Observation | Action |
+|-------------|--------------|
+| gpctl not found on Linux | Switch to `globalprotect show --status` binary override |
+| Connected but internal IP missing in details | Portal split tunnel or incomplete session |
+| Frequent reconnects | Inspect portal gateway selection and certificate trust |
 
 ---
 
@@ -207,23 +196,21 @@ gpctl show status
 uvpn check
 ```
 
-Fixture sets: `tests/fixtures/adapters/globalprotect/` (macOS + Linux samples).
-
 ---
 
 ## Supported versions
 
-GlobalProtect app **6.x** with documented CLI; see [adapter-version-matrix.md](../architecture/adapter-version-matrix.md).
+[adapter-version-matrix.md](../architecture/adapter-version-matrix.md) — GlobalProtect **6.x** with documented CLI.
 
 ---
 
 ## uvpn troubleshooting
 
-- gpctl not found → set `globalprotect_binary` or `generic`.
-- Connected + LAN fail → `TUNNEL_DOWN` (common with split tunnel).
+- Binary missing → override path or `generic`.
+- CLI connected + probe failure → `TUNNEL_DOWN` (often split tunnel).
 
 ---
 
 ## Related
 
-- [research-vpn-platforms.md](../architecture/research-vpn-platforms.md)
+- [adapter-version-matrix.md](../architecture/adapter-version-matrix.md)

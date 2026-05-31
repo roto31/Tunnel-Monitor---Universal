@@ -1,11 +1,11 @@
-# Adapter CLI fixtures
+# Fixture provenance
 
-Vendor-doc-derived stdout samples for fixture-based adapter tests (no lab required).
+Stdout samples for enterprise adapter parsers. Text is sanitized; shapes match incorporated guides in `docs/vpn-solutions/`.
 
-Provenance policy: excerpts modeled on official vendor documentation patterns.
+| Adapter | Maintainer record |
+|---------|-------------------|
+| GlobalProtect | GP 6.x CLI status output |
+| Fortinet | FortiClient 7.4 Linux `vpn status` shapes |
+| Pulse/Ivanti | ISAC `pulselauncher status` shapes |
 
-| Adapter | Source |
-|---------|--------|
-| GlobalProtect | https://docs.paloaltonetworks.com/globalprotect |
-| FortiClient | https://docs.fortinet.com/product/forticlient |
-| Pulse/Ivanti | https://help.ivanti.com/ps/ (not docs.pulsesecure.net) |
+No external vendor URLs in operator documentation. Manifests: `docs/vpn-solutions/manifests/`.

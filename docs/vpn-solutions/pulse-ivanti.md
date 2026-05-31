@@ -1,33 +1,30 @@
 # Pulse Secure / Ivanti Secure Access Client
 
-**vpn_type:** `pulse` or `ivanti`
-
-> **Documentation portal:** Pulse Secure docs at `docs.pulsesecure.net` are retired. Use **Ivanti Product Help** below. Do not link to `docs.pulsesecure.net` — GitHub and browsers report “Not a file” / 404.
+**vpn_type:** `pulse` or `ivanti`  
+**Pinned client line:** Ivanti Secure Access Client (ISAC) 22.x  
+**Legacy product names:** Pulse Secure desktop client, Pulse Connect Secure (gateway)
 
 ## uvpn at a glance
 
-The `pulse` adapter runs `pulselauncher status` (or `pulse_binary` override), parses stdout with fixture-validated rules, and combines the result with universal ICMP/DDNS probes. Production status requires CLI validation — `generic` reachability alone is insufficient when the Ivanti client is installed.
+The `pulse` adapter executes `pulselauncher status` (or `pulse_binary`), parses session stdout using fixture-validated rules, and merges results with universal ICMP and DDNS probes. When ISAC is installed, use this adapter—not `generic`—so control-plane state is evaluated.
 
 ---
 
-## Vendor documentation index
+## Incorporated reference map
 
-| Vendor section | Official document | URL |
-|----------------|-------------------|-----|
-| Product help home | Ivanti Product Help (Pulse Secure) | https://help.ivanti.com/ps/ |
-| Administration guide (22.x) | ISAC Administration Guide | https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/ |
-| Installation | Deploying Ivanti Secure Access Client | https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/installation_overview.htm |
-| CLI launcher (Windows/macOS) | Ivanti Secure Access Client Command-line Launcher | https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/cli_launcher.htm |
-| Linux CLI | Using Ivanti Secure Access Client Command Line | https://help.ivanti.com/ps/help/en_US/ISAC/vNow/linux-qsg/using-linux-client-command-line.htm |
-| Linux quick start | ISAC Linux Quick Start Guide | https://help.ivanti.com/ps/help/en_US/ISAC/vNow/linux-qsg/ |
-
-Internal references: [pulse-cli-contract.md](../architecture/pulse-cli-contract.md), [adapter-version-matrix.md](../architecture/adapter-version-matrix.md).
+| Topic | Source material (maintainer record) | Reflected in sections |
+|-------|--------------------------------------|------------------------|
+| Client deployment | ISAC administration — installation overview | §2 |
+| Command-line launcher | ISAC administration — CLI launcher (22.x) | §3, §6, §8 |
+| Linux terminal usage | ISAC Linux quick start — command line | §3.2 |
+| Session / gateway model | ISAC administration — product overview | §1, §4 |
+| uvpn status contract | Internal pulse-cli-contract + fixtures | §3.3, uvpn monitoring |
 
 ---
 
-## Diagrams (vendor + uvpn)
+## Diagrams
 
-### Product architecture (vendor)
+### Product architecture
 
 ```mermaid
 flowchart LR
@@ -49,265 +46,237 @@ flowchart LR
     IPS --> LAN
 ```
 
-### Deployment paths (vendor)
+### Deployment paths
 
 ```mermaid
 flowchart TD
     A[Choose deployment] --> B[Default installer]
-    A --> C[Preconfigured .pulsepreconfig]
-    A --> D[Non-admin Installer Local System]
+    A --> C[Preconfigured package]
+    A --> D[Non-admin installer]
     B --> E[User adds portal via UI or browser]
-    C --> F[msiexec or macOS import]
-    D --> G[Runs under SCM without user admin]
-    E --> H[ISAC ready]
+    C --> F[Windows silent install or macOS import]
+    D --> G[Local System service account]
+    E --> H[Client ready]
     F --> H
     G --> H
 ```
 
-### Connection lifecycle (vendor CLI)
+### Connection lifecycle
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Stopped: ISAC not running
-    Stopped --> Connecting: pulselauncher -url -u -p -r
-    Connecting --> Connected: exit 0
-    Connecting --> Failed: exit 2 or 7
-    Connected --> Suspended: -suspend -url
-    Suspended --> Connected: -resume -url
-    Connected --> Disconnected: -signout -url
-    Connected --> Stopped: -stop
+    [*] --> Stopped: client not running
+    Stopped --> Connecting: launcher connect args
+    Connecting --> Connected: success
+    Connecting --> Failed: gateway or auth failure
+    Connected --> Suspended: suspend command
+    Suspended --> Connected: resume command
+    Connected --> Disconnected: sign-out
+    Connected --> Stopped: stop command
     Disconnected --> [*]
     Failed --> [*]
-```
-
-### pulselauncher connect sequence (vendor)
-
-```mermaid
-sequenceDiagram
-    participant Script as Operator script
-    participant PL as pulselauncher
-    participant ISAC as ISAC client
-    participant GW as Ivanti gateway
-    Script->>PL: -url -u -p -r
-    PL->>ISAC: Launch / connect L3 session
-    ISAC->>GW: TLS + auth
-    GW-->>ISAC: Session established
-    ISAC-->>PL: exit 0
-    PL-->>Script: Success
 ```
 
 ### uvpn monitoring flow
 
 ```mermaid
 flowchart TB
-    subgraph uvpn [uvpn check cycle]
-        E[MonitorEngine]
-        A[pulse adapter]
-        P[Universal probes]
-        D[Diagnosis]
-    end
-    A -->|pulselauncher status| CLI[CLI stdout]
-    CLI -->|parse Connection Status| A
-    P -->|ping remote_lan_ip| LAN[LAN probe]
-    P -->|ping remote_wan_ip| WAN[WAN probe]
-    P -->|dig remote_ddns| DNS[DDNS probe]
-    E --> A
-    E --> P
-    A --> D
+    E[MonitorEngine] --> A[pulse adapter]
+    A -->|status subcommand| CLI[CLI stdout]
+    E --> P[Universal probes]
+    A --> D[Diagnosis]
     P --> D
-    D -->|state.json| ST[Operator / GUI]
-```
-
-### Exit code decision (vendor launcher)
-
-```mermaid
-flowchart TD
-    START[pulselauncher invoked] --> RUN{Client running?}
-    RUN -->|no| M1[exit -1]
-    RUN -->|yes| AUTH{Auth / connect OK?}
-    AUTH -->|no| M2[exit 1-9 or 100]
-    AUTH -->|yes| M0[exit 0 Success]
+    D --> ST[state.json]
 ```
 
 ---
 
 ## 1. Product overview
 
-**Vendor:** Ivanti Secure Access Client (ISAC), formerly Pulse Secure desktop client.
+The Ivanti Secure Access Client is the endpoint agent for remote access into enterprise networks through Ivanti Connect Secure or Policy Secure (Layer-3) gateways. The product line succeeded Pulse Secure branding; installs may still use Pulse-branded paths on Windows.
 
-- Connects endpoints to **Ivanti Connect Secure** or **Ivanti Policy Secure** gateways.
-- Rebranded from Pulse Secure (acquired 2020); registry paths and binary names may still contain `Pulse` on some platforms.
-- CLI automation uses **`pulselauncher`** (Windows/macOS) or **`/opt/pulsesecure/bin/pulselauncher`** (Linux package layout per Linux QSG).
+The desktop agent provides a graphical interface and a **`pulselauncher`** helper for scripted connect and disconnect without opening the UI. Layer-3 VPN sessions are in scope for the launcher; 802.1X-only Policy Secure profiles are not driven by this CLI.
 
-**uvpn relevance:** Control-plane status via CLI stdout; data-plane via `remote_lan_ip` / `remote_wan_ip` probes.
+**Monitoring relevance:** Session presence and gateway identity appear in launcher status output; reachability of protected subnets still requires independent probes.
 
 ---
 
 ## 2. Installation and deployment
 
-**Vendor summary** ([installation overview](https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/installation_overview.htm)):
+Three common enterprise rollout patterns:
 
-| Method | Description |
-|--------|-------------|
-| Default installer | Full client, no pre-defined connections; users add portals via UI or browser |
-| Preconfigured installer | `.pulsepreconfig` + msiexec (Windows) or import after install (macOS) |
-| Non-admin Windows | Ivanti Secure Access Client Installer (Local System) for locked-down endpoints |
+| Pattern | Behavior |
+|---------|----------|
+| **Default package** | Installs all components with no predefined connections. Users add portals through the client UI or by signing in through a browser portal that pushes a connection profile. |
+| **Pre-staged profile** | Administrator exports a `.pulsepreconfig` settings file with required portals. Windows deployments combine the MSI with `msiexec` and the settings file; macOS installs the base package then imports the profile. |
+| **Restricted desktop** | A dedicated installer runs under the Windows Local System account so standard users can launch VPN without local admin rights; the installer registers with the Service Control Manager. |
 
-**Typical paths:**
+**Typical launcher locations**
 
-| OS | Binary / integration |
-|----|----------------------|
-| Windows | `pulselauncher.exe` under `Program Files\Common Files\Ivanti\Integration` or legacy `Pulse Secure\Integration` |
+| OS | Path |
+|----|------|
+| Windows | `Program Files\Common Files\Ivanti\Integration\pulselauncher.exe` (legacy trees may read `Pulse Secure\Integration`) |
 | Linux | `/opt/pulsesecure/bin/pulselauncher` |
-| macOS | `pulselauncher` on PATH when ISAC app installed |
+| macOS | `pulselauncher` on PATH when the ISAC application bundle is installed |
 
-**uvpn:** Set `pulse_binary` if not on PATH. Run `uvpn preflight` to verify the binary exists.
+Alternate wrapper: `/usr/local/pulse/PulseClient.sh` on some Linux builds.
+
+Set `pulse_binary` in uvpn when the binary is outside PATH. Confirm with `uvpn preflight`.
 
 ---
 
 ## 3. CLI and management interface
 
-### 3.1 Command-line launcher (Windows / macOS)
+### 3.1 Launcher overview (Windows and macOS)
 
-**Source:** [cli_launcher.htm](https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/cli_launcher.htm)
+`pulselauncher` is a small executable shipped with the client. It starts or stops the agent and establishes VPN sessions from scripts without displaying the main window. It operates in both per-user and machine contexts where the product supports it.
 
-`pulselauncher` is a standalone program to connect/disconnect without the GUI.
-
-**Syntax (vendor):**
+**General syntax**
 
 ```text
-pulselauncher [-version|-help|-stop|-loglevel] [-sessionselection]
-  [-url -u -p -r ] [-d -url ] [-cert -url -r ]
-  [-signout|-suspend|-resume -url ] [-t timeout]
+pulselauncher [global options] [connection block] [session control block]
 ```
 
-**Key arguments:**
+**Global options**
 
-| Argument | Action |
-|----------|--------|
-| `-version` | Display launcher version and exit |
-| `-help` | Show argument help |
-| `-stop` | Stop client; disconnect all connections |
-| `-url`, `-u`, `-p`, `-r` | Server URL, user, password, realm |
-| `-signout` / `-suspend` / `-resume` | Session control (requires `-url`) |
-| `-t` | Connection timeout (45–600 s, default 45) |
-| `-L loglevel` | Linux only: log verbosity (3 normal, 5 detailed) |
+| Option | Effect |
+|--------|--------|
+| `-version` | Prints launcher build information and exits. |
+| `-help` | Lists supported switches. |
+| `-stop` | Shuts down the client and drops all active tunnels. |
+| `-sessionselection` | When concurrent session limits are hit, terminates the oldest session so automation can proceed without a UI prompt. |
+| `-L loglevel` | **Linux only.** Sets verbosity: level 3 (default) logs critical through info; level 5 logs all messages. |
 
-**Limitations (vendor):**
+**Connection block (sign-in)**
 
-- L3 (Connect Secure / Policy Secure) only — not 802.1X Policy Secure.
-- No secondary authentication via launcher.
-- Role selection in UI can cause exit code `2` if realm requires pick-list.
+| Option | Effect |
+|--------|--------|
+| `-url` | Gateway or portal URL for the target server. |
+| `-u` | Username. |
+| `-p` | Password. |
+| `-r` | Authentication realm on the server. |
+| `-d cookie -url` | Supplies an existing session cookie instead of password auth; URL is still required. |
+| `-cert name -url -r` | Selects a client certificate by its issued-to name; server must allow certificate login and trust the issuing CA. |
+| `-t seconds` | Maximum time to complete connect (45–600; default 45). |
 
-### 3.2 Linux command line
+**Session control (requires `-url` when multiple profiles exist)**
 
-**Source:** [using-linux-client-command-line.htm](https://help.ivanti.com/ps/help/en_US/ISAC/vNow/linux-qsg/using-linux-client-command-line.htm)
+| Option | Effect |
+|--------|--------|
+| `-signout` | Disconnects and clears server session state. |
+| `-suspend` | Pauses tunnel while retaining session metadata on the server. |
+| `-resume` | Restores a suspended tunnel. |
 
-```bash
-/opt/pulsesecure/bin/pulselauncher --help
-```
+**Documented constraints**
 
-CLI connects only to **Trusted Server** (vendor constraint).
+- Launcher drives Connect Secure and Policy Secure **L3** profiles only—not 802.1X wired/wireless control channels.
+- Secondary authentication prompts are not supported headlessly; flows that require them fail from scripts.
+- If a realm maps users to multiple roles and the server requires an interactive role pick, the launcher exits with code **2** unless the realm merges roles automatically.
+
+### 3.2 Linux terminal client
+
+The Linux package exposes the same launcher under `/opt/pulsesecure/bin/`. Run `--help` for the exact switch list shipped with your package.
+
+**Trusted Server requirement:** The Linux CLI only connects to gateways pre-approved as trusted in client policy. Attempts against untrusted portals fail before tunnel establishment—relevant when reproducing connection issues outside uvpn.
 
 ### 3.3 uvpn monitoring command
 
-uvpn invokes:
+uvpn does **not** invoke connect switches. It runs:
 
 ```bash
 pulselauncher status
 ```
 
-(or configured `pulse_binary`). Expected stdout lines (fixture-validated):
+**Expected stdout shape (fixture-validated)**
 
 ```text
 Connection Status: Connected
 Server: <hostname>
-Session ID: <id>
+Session ID: <identifier>
 ```
 
-See [pulse-cli-contract.md](../architecture/pulse-cli-contract.md). The `status` subcommand output format is validated via fixtures; connect/disconnect syntax is documented in vendor launcher pages above.
+Disconnected and error samples are in `tests/fixtures/adapters/pulse/`. Parsing rules: [pulse-cli-contract.md](../architecture/pulse-cli-contract.md).
+
+The connect syntax above is incorporated for operator context; the status subcommand format is validated internally because public launcher chapters emphasize connect/disconnect rather than monitoring output.
 
 ---
 
 ## 4. Connection lifecycle
 
-| Phase | Vendor mechanism | uvpn signal |
-|-------|------------------|-------------|
-| Connect | `pulselauncher -url … -u … -p … -r …` | N/A (uvpn does not connect) |
-| Connected | Active session on gateway | `Connection Status: Connected` in status output |
-| Suspend / resume | `-suspend` / `-resume` | Parser state `connecting` / ambiguous |
-| Sign out | `-signout -url …` | `disconnected` |
-| Stop client | `-stop` | Daemon down → adapter + `VPN_DAEMON_DOWN` |
+| Phase | Operator / launcher action | uvpn interpretation |
+|-------|---------------------------|---------------------|
+| Agent stopped | No process / exit -1 on connect | `supported=True`, daemon likely down |
+| Negotiating | Connect switches in flight | `connecting` if status text ambiguous |
+| Established | Active L3 session | `Connection Status: Connected` |
+| Suspended | `-suspend` | May read as non-connected or transitional |
+| Signed out | `-signout` | Disconnected |
+| Agent halt | `-stop` | Disconnected; probes may still run |
 
 ---
 
 ## 5. Status and monitoring
 
-| Layer | Method | Owner |
-|-------|--------|-------|
-| Control plane | `pulselauncher status` (uvpn) | `pulse` adapter |
-| Data plane | Ping `remote_lan_ip`, `remote_wan_ip`, DDNS | Universal probes |
-| Combined diagnosis | Engine rules | `TUNNEL_DOWN` if adapter says up but LAN fails |
-
-**Do not** use `vpn_type: generic` when ISAC is installed — you lose CLI session state.
+| Layer | Mechanism |
+|-------|-----------|
+| Control plane | Parsed `pulselauncher status` |
+| Data plane | ICMP to `remote_lan_ip`, `remote_wan_ip`; optional DDNS check |
+| Combined | Engine emits `TUNNEL_DOWN` when CLI reports connected but LAN probe fails (split tunnel or routing) |
 
 ---
 
 ## 6. Authentication and certificates
 
-**Vendor** ([cli_launcher.htm](https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/cli_launcher.htm)):
+Password login supplies `-u`, `-p`, `-r`, and `-url` together. Certificate login uses `-cert` with the certificate’s issued-to string plus `-url` and `-r`; invalid or expired certificates produce CLI errors and log entries—certificate verification for browser launches differs from launcher-launched sessions on some platforms.
 
-- Password auth: `-u`, `-p`, `-r`, `-url`
-- Certificate auth: `-cert` (Issued To name) + `-url` + `-r`; server must allow cert auth
-- Cookie pass-through: `-d` + `-url`
+Cookie-based login passes `-d` with a cookie value and `-url` for the target server.
 
-uvpn does not handle credentials — monitoring only.
+uvpn never stores or transmits credentials.
 
 ---
 
 ## 7. Logging and diagnostics
 
-| Platform | Vendor guidance |
-|----------|-----------------|
-| Linux | `-L loglevel` on pulselauncher (3 or 5) |
-| Windows / macOS | Client logs via ISAC UI / admin policy |
+On Linux, `-L` adjusts launcher log detail. Windows and macOS diagnostics are primarily through the client UI or centralized logging policies configured by administrators.
 
-uvpn stores last CLI snippet in `state.json` → `adapter.raw.snippet` (max 500 chars). Full status text in statistics when connected.
+uvpn retains a truncated CLI transcript under `adapter.raw.snippet` in `state.json` and a longer status blob in statistics when available.
 
 ---
 
 ## 8. Exit codes and return values
 
-**pulselauncher return codes** ([cli_launcher.htm](https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/cli_launcher.htm)):
+Launcher process return codes (connect/disconnect operations):
 
-| Code | Description |
-|------|-------------|
-| -1 | ISAC not running |
-| 0 | Success |
-| 1 | Invalid parameter |
-| 2 | Connection failed / cannot reach gateway |
-| 3 | Connected with error |
-| 4 | Connection does not exist |
+| Code | Meaning |
+|------|---------|
+| -1 | Client service not running |
+| 0 | Operation succeeded |
+| 1 | Invalid argument |
+| 2 | Tunnel could not be established or gateway unreachable |
+| 3 | Tunnel up but reported error state |
+| 4 | Requested session does not exist (e.g., sign-out when not connected) |
 | 5 | User cancelled |
-| 6 | Client certificate error |
-| 7 | Timeout |
-| 8 | UI connection not allowed |
-| 9 | Policy override not allowed |
-| 25 | Invalid action for state (e.g. resume when disconnected) |
-| 100 | General error |
+| 6 | Client certificate problem |
+| 7 | Timed out waiting for connection |
+| 8 | Policy blocks UI-less connection |
+| 9 | Policy blocks override |
+| 25 | Action incompatible with current state (resume while disconnected, etc.) |
+| 100 | Unspecified failure |
 
-uvpn maps stdout **Connection Status** lines to connected/disconnected; non-zero exit with parseable stdout still evaluated.
+On Windows, inspect `%ERRORLEVEL%`; on Unix shells, inspect `$?`.
+
+uvpn evaluates status **stdout** first; exit code supplements diagnosis when output is empty.
 
 ---
 
-## 9. Vendor troubleshooting
+## 9. Product troubleshooting
 
-| Symptom | Vendor direction |
-|---------|------------------|
-| Launcher exit 2 | Gateway unreachable, bad URL, or role-mapping requires UI |
-| Exit -1 | Start ISAC service / app before launcher |
-| Linux CLI fails | Server must be Trusted Server |
-| Cert auth fails | Verify `-cert` name and server CA trust |
+| Observation | Likely cause |
+|-------------|--------------|
+| Exit 2 after script connect | Bad URL, unreachable gateway, or realm requires role selection in UI |
+| Exit -1 | Start ISAC service before calling launcher |
+| Linux script fails immediately | Target server not in Trusted Server list |
+| Certificate connect fails | Issued-to name mismatch or untrusted CA |
+| Exit 7 | Increase `-t` or check network path |
 
 ---
 
@@ -325,19 +294,9 @@ uvpn maps stdout **Connection Status** lines to connected/disconnected; non-zero
 }
 ```
 
-| Key | Description |
-|-----|-------------|
-| `pulse_binary` | Override path (`pulselauncher`, `PulseClient.sh`, or full path) |
-
 ---
 
 ## uvpn monitoring
-
-| Metric | Source | Validation |
-|--------|--------|------------|
-| Session state | `pulselauncher status` | Fixture-validated + documented-at |
-| Server / session id | status stdout | Parsed when present |
-| Tunnel reachability | ICMP probes | Always on |
 
 ```bash
 uvpn preflight
@@ -346,11 +305,17 @@ uvpn statistics
 uvpn explain
 ```
 
+| Metric | Origin |
+|--------|--------|
+| Session state | Status subcommand |
+| Server / session id | Parsed stdout fields |
+| Path health | Universal probes |
+
 ---
 
 ## Supported versions
 
-See [adapter-version-matrix.md](../architecture/adapter-version-matrix.md) — **ISAC 22.x** pinned for v1.0.0. Unsupported builds → `supported=False`.
+[adapter-version-matrix.md](../architecture/adapter-version-matrix.md) — ISAC **22.x**. Other builds may return `supported=False`.
 
 ---
 
@@ -358,10 +323,9 @@ See [adapter-version-matrix.md](../architecture/adapter-version-matrix.md) — *
 
 | Issue | Action |
 |-------|--------|
-| `CLI not found` | Install ISAC; set `pulse_binary` to `/opt/pulsesecure/bin/pulselauncher` on Linux |
-| Adapter connected, LAN down | `TUNNEL_DOWN` — routing/split tunnel; trust probes |
-| Unrecognized status text | Upgrade/downgrade client to matrix version or open issue with redacted stdout |
-| Old docs link 404 | Use https://help.ivanti.com/ps/ not `docs.pulsesecure.net` |
+| CLI not found | Install client; set `pulse_binary` to Linux path above |
+| Connected + LAN down | Expect `TUNNEL_DOWN`; verify routes and split tunnel |
+| Unrecognized status text | Align client with matrix version; capture redacted stdout for maintainers |
 
 ---
 
@@ -369,4 +333,3 @@ See [adapter-version-matrix.md](../architecture/adapter-version-matrix.md) — *
 
 - [pulse-cli-contract.md](../architecture/pulse-cli-contract.md)
 - [adapter-version-matrix.md](../architecture/adapter-version-matrix.md)
-- [research-vpn-platforms.md](../architecture/research-vpn-platforms.md)

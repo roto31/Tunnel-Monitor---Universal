@@ -45,18 +45,7 @@ Runs `uvpn check` every 300 seconds. Config: `~/Library/Application Support/uvpn
 
 ## Cisco AnyConnect on macOS
 
-Set in `config.json`:
-
-```json
-{
-  "vpn_type": "cisco_anyconnect",
-  "cisco_vpn_binary": "/opt/cisco/secureclient/bin/vpn",
-  "remote_lan_ip": "10.0.0.1",
-  "remote_wan_ip": "198.51.100.1"
-}
-```
-
-Source: [Cisco Secure Client CLI](https://www.cisco.com/c/en/us/td/docs/security/vpn_client/anyconnect/Cisco-Secure-Client-5/admin/guide/b-cisco-secure-client-admin-guide-5-0/customize-localize-anyconnect.html)
+Set `vpn_type` to `cisco_anyconnect` and `cisco_vpn_binary` to the Secure Client CLI path. See [../vpn-solutions/cisco-anyconnect.md](../vpn-solutions/cisco-anyconnect.md).
 
 ## Legacy note
 

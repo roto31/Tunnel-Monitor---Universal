@@ -4,29 +4,30 @@
 
 Production-ready Pulse adapter requires:
 
-1. **Documented command** — `pulselauncher status` or vendor wrapper `PulseClient.sh status`
-2. **Pinned reference** — [Ivanti ISAC Administration Guide](https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/cli_launcher.htm) (22.x) and [Linux CLI QSG](https://help.ivanti.com/ps/help/en_US/ISAC/vNow/linux-qsg/using-linux-client-command-line.htm)
+1. **Documented connect syntax** — launcher switches for URL, user, password, realm (ISAC administration CLI chapter, 22.x)
+2. **Monitoring subcommand** — `pulselauncher status` with stable stdout keys (`Connection Status`, `Server`, `Session ID`)
 3. **Fixture variants** — all must parse correctly:
    - `connected.txt`
    - `disconnected.txt`
    - `error.txt`
 
-Fixtures live in [`tests/fixtures/adapters/pulse/`](../../tests/fixtures/adapters/pulse/).
+Fixtures: `tests/fixtures/adapters/pulse/`
 
-## Source
+## Incorporated source material (maintainer record)
 
-- **Primary portal:** https://help.ivanti.com/ps/
-- **CLI launcher:** https://help.ivanti.com/ps/help/en_US/ISAC/22.X/ag-22.X/cli_launcher.htm
-- **Linux CLI:** https://help.ivanti.com/ps/help/en_US/ISAC/vNow/linux-qsg/using-linux-client-command-line.htm
+| Record id | Title | Version pin |
+|-----------|-------|-------------|
+| isac-cli-launcher | ISAC Administration — Command-line Launcher | 22.x |
+| isac-linux-cli | ISAC Linux Quick Start — Command Line | vNow train |
+| isac-install | ISAC Administration — Installation Overview | 22.x |
 
-> `https://docs.pulsesecure.net/` is **retired** — do not use in links or docs.
+Retired public portal `docs.pulsesecure.net` must not be referenced in operator docs.
 
 ## Generic fallback
 
-`vpn_type: generic` remains valid for **reachability-only** monitoring but does **not** satisfy Pulse adapter production status.
+`vpn_type: generic` remains valid for **reachability-only** monitoring but does **not** satisfy Pulse adapter production status when ISAC is installed.
 
 ## Parser
 
-Implementation: [`src/uvpn/adapters/cli_parse.py`](../../src/uvpn/adapters/cli_parse.py) — `parse_pulse_status()`.
-
-Tests: [`tests/test_adapters_enterprise.py`](../../tests/test_adapters_enterprise.py).
+- Implementation: `src/uvpn/adapters/cli_parse.py` — `parse_pulse_status()`
+- Tests: `tests/test_adapters_enterprise.py`

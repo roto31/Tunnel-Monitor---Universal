@@ -1,0 +1,11 @@
+platform: globalprotect
+pinned_version: "GlobalProtect 6.x"
+sources:
+  - id: gp-linux-user-cli
+    title: "GlobalProtect Linux User Guide — CLI show status"
+    sections: [3]
+    last_verified: "2026-05-31"
+  - id: gp-administration
+    title: "GlobalProtect Administration — portal and gateway"
+    sections: [1, 4]
+    last_verified: "2026-05-31"

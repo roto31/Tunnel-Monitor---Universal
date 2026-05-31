@@ -1,42 +1,42 @@
 # Enterprise adapter version matrix (v1.0.0 target)
 
-Fixture validation uses vendor-doc-derived stdout samples in [`tests/fixtures/adapters/`](../../tests/fixtures/adapters/).
+Fixture validation uses vendor-doc-derived stdout samples in `tests/fixtures/adapters/`.
 
-**Provenance:** vendor documentation excerpts only (no lab, no customer samples).
+**Provenance:** Reworded excerpts from vendor administration material; fixture files capture expected CLI shapes. No external vendor URLs in operator documentation.
 
 ## GlobalProtect
 
-| Platform | Client / tool | Supported in v1.0.0 | CLI surface | Source |
-|----------|---------------|---------------------|-------------|--------|
-| macOS | GlobalProtect app + `gpctl` | Yes | `gpctl show status` | [PAN GlobalProtect](https://docs.paloaltonetworks.com/globalprotect) |
-| Linux | GlobalProtect agent + `gpctl` | Yes (when binary present) | `gpctl show status` | Same |
+| Platform | Client / tool | Supported in v1.0.0 | CLI surface | Maintainer record |
+|----------|---------------|---------------------|-------------|-------------------|
+| macOS | GlobalProtect app + `gpctl` | Yes | `gpctl show status` | GP 6.x admin + Linux 6.3 user CLI |
+| Linux | GlobalProtect agent + CLI | Yes (when binary present) | `gpctl show status` or `globalprotect show --status` | Same |
 
-Unsupported: hosts without `gpctl` → adapter returns `supported=False`; use `vpn_type: generic`.
+Unsupported: hosts without CLI → `supported=False`; use `vpn_type: generic` for probes only.
 
 ## FortiClient
 
-| Platform | Client | Supported in v1.0.0 | CLI surface | Source |
-|----------|--------|---------------------|-------------|--------|
-| macOS | FortiClient 7.x | Yes | `fortivpn vpn status` or `forticlient vpn status` | [FortiClient docs](https://docs.fortinet.com/product/forticlient) |
+| Platform | Client | Supported in v1.0.0 | CLI surface | Maintainer record |
+|----------|--------|---------------------|-------------|-------------------|
+| macOS | FortiClient 7.x | Yes | `fortivpn` / `forticlient vpn status` | FortiClient 7.4 admin — platform CLI chapters |
 | Linux | FortiClient 7.x | Yes (when CLI present) | Same | Same |
 
-Unsupported versions: return `supported=False` when CLI missing or output unrecognized.
+Unsupported versions: unrecognized stdout → `supported=False`.
 
 ## Pulse / Ivanti Secure Access
 
-| Platform | Client | Supported in v1.0.0 | CLI surface | Source |
-|----------|--------|---------------------|-------------|--------|
-| macOS | Ivanti Secure Access / Pulse 22.x | Yes | `pulselauncher status` or `PulseClient.sh status` | [Ivanti Product Help](https://help.ivanti.com/ps/) |
-| Linux | Pulse / ISAC client | Yes (when wrapper present) | Same | [Linux CLI QSG](https://help.ivanti.com/ps/help/en_US/ISAC/vNow/linux-qsg/using-linux-client-command-line.htm) |
+| Platform | Client | Supported in v1.0.0 | CLI surface | Maintainer record |
+|----------|--------|---------------------|-------------|-------------------|
+| macOS | ISAC 22.x | Yes | `pulselauncher status` | ISAC 22.x CLI launcher chapter |
+| Linux | ISAC / Pulse client | Yes (when wrapper present) | Same + `/opt/pulsesecure/bin/pulselauncher` | ISAC Linux QSG CLI |
 
-See [`pulse-cli-contract.md`](pulse-cli-contract.md) for exit criteria and fixture variants.
+See [pulse-cli-contract.md](pulse-cli-contract.md).
 
 ## Validation status labels
 
 | Label | Meaning |
 |-------|---------|
 | Fixture-validated | Parser tested against `tests/fixtures/adapters/<vendor>/` |
-| Documented-at | Command documented at vendor portal; not lab-tested |
-| Lab-validated | Not available in v1.0.0 scope |
+| Documented-at | Behavior restated from vendor administration material (internal record) |
+| Lab-validated | Not in v1.0.0 scope |
 
 All three enterprise adapters in v1.0.0 are **fixture-validated** + **documented-at**.
