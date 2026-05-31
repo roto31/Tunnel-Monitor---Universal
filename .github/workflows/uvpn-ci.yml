@@ -1,0 +1,30 @@
+name: uvpn CI
+
+on:
+  push:
+    paths:
+      - 'universal-vpn-monitor/**'
+      - '.github/workflows/uvpn-ci.yml'
+  pull_request:
+    paths:
+      - 'universal-vpn-monitor/**'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install and test
+        working-directory: universal-vpn-monitor
+        run: |
+          python -m pip install -e ".[dev]"
+          pytest -q
+      - name: Build macOS menu bar app
+        working-directory: universal-vpn-monitor/apps/macos/UniversalVPNMonitor
+        run: swift build -c release

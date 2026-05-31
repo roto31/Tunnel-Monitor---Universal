@@ -1,0 +1,43 @@
+#!/bin/bash
+# uvpn-tui — universal terminal menu (shell-based, UniFi-inspired operator UX)
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+UVPN="${SCRIPT_DIR}/uvpn"
+
+show_help() {
+    cat <<'EOF'
+uvpn-tui — interactive terminal for Universal VPN Monitor
+
+Uses the same Python engine as uvpn CLI and native GUIs.
+EOF
+}
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    show_help
+    exit 0
+fi
+
+while true; do
+    echo ""
+    echo "=== Universal VPN Monitor ==="
+    echo "  1) Run check"
+    echo "  2) Show status"
+    echo "  3) Explain diagnosis"
+    echo "  4) Preflight"
+    echo "  5) List adapters"
+    echo "  6) Init example config"
+    echo "  q) Quit"
+    printf "> "
+    read -r choice
+    case "${choice}" in
+        1) bash "${UVPN}" check ;;
+        2) bash "${UVPN}" status ;;
+        3) bash "${UVPN}" explain ;;
+        4) bash "${UVPN}" preflight ;;
+        5) bash "${UVPN}" adapters ;;
+        6) bash "${UVPN}" init-config ;;
+        q|Q) exit 0 ;;
+        *) echo "Unknown option" ;;
+    esac
+done

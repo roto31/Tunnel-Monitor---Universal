@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uvpn"
+version = "0.1.0"
+description = "Universal point-to-point VPN monitor — platform-agnostic Python core"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Tunnel Monitor Universal" }]
+dependencies = []
+
+[project.optional-dependencies]
+linux-gui = ["PyGObject>=3.42"]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+uvpn = "uvpn.interfaces.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["uvpn*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

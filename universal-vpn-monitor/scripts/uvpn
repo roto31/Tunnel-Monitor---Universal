@@ -1,0 +1,16 @@
+#!/bin/bash
+# uvpn — shell wrapper for Universal VPN Monitor (calls Python engine)
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export PYTHONPATH="${ROOT}:${PYTHONPATH:-}"
+
+if command -v uvpn >/dev/null 2>&1; then
+    exec uvpn "$@"
+fi
+
+if [[ -x "${ROOT}/.venv/bin/python" ]]; then
+    exec "${ROOT}/.venv/bin/python" -m uvpn "$@"
+fi
+
+exec python3 -m uvpn "$@"

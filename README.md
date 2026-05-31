@@ -1,6 +1,10 @@
 # Tunnel Monitor — Universal (v2)
 
-Portable site-to-site VPN health monitoring with a shared **tunnel-monitor-core** engine and platform **adapters**.
+> **Important:** The **Universal VPN Monitor** product is the greenfield Python stack in [`universal-vpn-monitor/`](universal-vpn-monitor/README.md) (`uvpn`). See [`UNIVERSAL.md`](UNIVERSAL.md).
+>
+> The paths below (`Public/`, bash `vendor/core/`) are the **legacy** site-specific monitor — not platform-agnostic Universal.
+
+Portable site-to-site VPN health monitoring with a shared **tunnel-monitor-core** engine and platform **adapters** (legacy bash).
 
 ## Architecture
 
