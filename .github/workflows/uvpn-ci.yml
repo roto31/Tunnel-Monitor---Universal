@@ -22,10 +22,11 @@ on:
 permissions:
   contents: read
 
-jobs:
 concurrency:
   group: m4-macos
   cancel-in-progress: false
+
+jobs:
   test:
     runs-on: [self-hosted, macOS, ARM64, m4-homelab]
     steps:
