@@ -23,8 +23,11 @@ permissions:
   contents: read
 
 jobs:
+concurrency:
+  group: m4-macos
+  cancel-in-progress: false
   test:
-    runs-on: macos-latest
+    runs-on: [self-hosted, macOS, ARM64, m4-homelab]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -39,7 +42,7 @@ jobs:
         run: swift build -c release
 
   portal:
-    runs-on: macos-latest
+    runs-on: [self-hosted, macOS, ARM64, m4-homelab]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
