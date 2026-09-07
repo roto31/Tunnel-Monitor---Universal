@@ -28,32 +28,42 @@
     },
     {
       "sequence": 3,
-      "version": "2.0.0",
-      "tag": "v2.0.0",
-      "folder": "03-v2.0.0",
-      "released": "2026-05-31",
+      "version": "1.2.0",
+      "tag": "v1.2.0",
+      "folder": "03-v1.2.0",
+      "released": "2026-09-06",
       "dataRevision": {
-        "wizard-fields": "gateway-v2",
+        "wizard-fields": "public-v1",
         "app-icon": "liquid-glass-v1",
-        "assets-car": "liquid-glass-v1",
-        "core-engine": "2.0.0"
+        "assets-car": "liquid-glass-v1"
       },
-      "notes": "tunnel-monitor-core v2 universal distribution; gateway_dedup state.json schema; GATEWAY_* config aliases."
+      "notes": "IPsec troubleshooting runbooks (vti DOWN, NO_PROPOSAL_CHOSEN, ISP modem, compound failures); release workflow concurrency fix."
     },
     {
       "sequence": 4,
-      "version": "2.0.1",
-      "tag": "v2.0.1",
-      "folder": "04-v2.0.1",
-      "released": "2026-05-31",
+      "version": "1.2.1",
+      "tag": "v1.2.1",
+      "folder": "04-v1.2.1",
+      "released": "2026-09-06",
       "dataRevision": {
-        "wizard-fields": "gateway-v2",
+        "wizard-fields": "public-v1",
         "app-icon": "liquid-glass-v1",
-        "assets-car": "liquid-glass-v1",
-        "core-engine": "2.0.0",
-        "gui-runbooks": "gui-runbooks-v1"
+        "assets-car": "liquid-glass-v1"
       },
-      "notes": "DiagnosisReference GUI runbooks, stale state banner, tunnel-check --explain/--preflight."
+      "notes": "Developer ID signed + notarized pkg (ASC API key)."
+    },
+    {
+      "sequence": 5,
+      "version": "1.3.0",
+      "tag": "v1.3.0",
+      "folder": "05-v1.3.0",
+      "released": "2026-09-06",
+      "dataRevision": {
+        "wizard-fields": "public-v1",
+        "app-icon": "liquid-glass-v1",
+        "assets-car": "liquid-glass-v1"
+      },
+      "notes": "Opt-in UniFi gateway self-healing (heal.sh); CI ephemeral keychain codesign."
     }
   ]
 }

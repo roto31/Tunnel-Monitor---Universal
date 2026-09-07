@@ -15,22 +15,10 @@ echo "==> Installing tunnel monitor to ${TARGET_DIR}"
 mkdir -p "$TARGET_DIR"
 
 # Copy persistent files
-install -m 0755 "${SOURCE_DIR}/monitor.sh"          "${TARGET_DIR}/monitor.sh"
-install -m 0755 "${SOURCE_DIR}/openvpn-recover.sh"  "${TARGET_DIR}/openvpn-recover.sh"
-install -m 0700 "${SOURCE_DIR}/send-email.sh"       "${TARGET_DIR}/send-email.sh"
-install -m 0755 "${SOURCE_DIR}/tunnel-check"        "${TARGET_DIR}/tunnel-check"
-
-# tunnel-monitor-core + gateway adapter (bundled from monorepo when present)
-MONOREPO_ROOT="$(cd "${SOURCE_DIR}/../.." && pwd)"
-if [[ -f "${MONOREPO_ROOT}/scripts/install-core.sh" ]]; then
-    # shellcheck source=../../scripts/install-core.sh
-    source "${MONOREPO_ROOT}/scripts/install-core.sh"
-    install_tunnel_monitor_core "${TARGET_DIR}" "${MONOREPO_ROOT}"
-    install_gateway_adapter "${TARGET_DIR}" "${SOURCE_DIR}"
-elif [[ -d "${SOURCE_DIR}/vendor/core" ]]; then
-    # shellcheck source=/dev/null
-    source "${SOURCE_DIR}/install-core-bundle.sh" 2>/dev/null || true
-fi
+install -m 0755 "${SOURCE_DIR}/monitor.sh"     "${TARGET_DIR}/monitor.sh"
+install -m 0700 "${SOURCE_DIR}/send-email.sh"  "${TARGET_DIR}/send-email.sh"
+install -m 0755 "${SOURCE_DIR}/tunnel-check"   "${TARGET_DIR}/tunnel-check"
+install -m 0755 "${SOURCE_DIR}/heal.sh"        "${TARGET_DIR}/heal.sh"
 
 # Preserve existing config if present; otherwise drop template
 if [[ ! -f "${TARGET_DIR}/config.env" ]]; then
@@ -44,14 +32,30 @@ fi
 # Initialize state if missing
 [[ -f "${TARGET_DIR}/state" ]] || echo "0:UP" > "${TARGET_DIR}/state"
 chmod 0644 "${TARGET_DIR}/state"
-[[ -f "${TARGET_DIR}/recover-state" ]] || echo "0:0:0" > "${TARGET_DIR}/recover-state"
-chmod 0644 "${TARGET_DIR}/recover-state"
+
+# Heal counters/log survive firmware; never clobber on re-run
+if [[ ! -f "${TARGET_DIR}/heal-state" ]]; then
+    cat > "${TARGET_DIR}/heal-state" <<'EOF'
+attempts_today=0
+attempts_day=
+consecutive_fails=0
+last_cycle_epoch=0
+last_result=
+cooldown_until_epoch=0
+exhausted_alerted=0
+capped_alerted=0
+EOF
+    echo "==> Initialized ${TARGET_DIR}/heal-state"
+else
+    echo "==> Existing heal-state preserved at ${TARGET_DIR}/heal-state"
+fi
+[[ -f "${TARGET_DIR}/heal.log" ]] || touch "${TARGET_DIR}/heal.log"
+chmod 0644 "${TARGET_DIR}/heal-state" "${TARGET_DIR}/heal.log"
+
 
 # Install systemd units
-install -m 0644 "${SOURCE_DIR}/tunnel-monitor.service"  "${SYSTEMD_DIR}/tunnel-monitor.service"
-install -m 0644 "${SOURCE_DIR}/tunnel-monitor.timer"    "${SYSTEMD_DIR}/tunnel-monitor.timer"
-install -m 0644 "${SOURCE_DIR}/openvpn-recover.service" "${SYSTEMD_DIR}/openvpn-recover.service"
-install -m 0644 "${SOURCE_DIR}/openvpn-recover.timer"   "${SYSTEMD_DIR}/openvpn-recover.timer"
+install -m 0644 "${SOURCE_DIR}/tunnel-monitor.service" "${SYSTEMD_DIR}/tunnel-monitor.service"
+install -m 0644 "${SOURCE_DIR}/tunnel-monitor.timer"   "${SYSTEMD_DIR}/tunnel-monitor.timer"
 
 # Symlink the diagnostic CLI into /usr/local/bin so you can just type `tunnel-check`
 ln -sf "${TARGET_DIR}/tunnel-check" /usr/local/bin/tunnel-check
@@ -59,7 +63,6 @@ ln -sf "${TARGET_DIR}/tunnel-check" /usr/local/bin/tunnel-check
 # Reload systemd and enable timer
 systemctl daemon-reload
 systemctl enable --now tunnel-monitor.timer
-systemctl enable --now openvpn-recover.timer
 
 echo
 echo "==> Installation complete."
@@ -80,8 +83,7 @@ echo "       systemctl start tunnel-monitor.service"
 echo "       journalctl -u tunnel-monitor.service --no-pager -n 30"
 echo
 echo "  5. See timer status:"
-echo "       systemctl list-timers tunnel-monitor.timer openvpn-recover.timer"
+echo "       systemctl list-timers tunnel-monitor.timer"
 echo
-echo "  6. OpenVPN self-recovery (disabled until RECOVER_ENABLED=1 in config.env):"
-echo "       ${TARGET_DIR}/openvpn-recover.sh --status"
-echo "       systemctl start openvpn-recover.service"
+echo "  6. From this source directory: bash verify.sh"
+

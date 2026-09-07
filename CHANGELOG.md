@@ -16,6 +16,7 @@ Legacy bash monitor history: [legacy/CHANGELOG-legacy.md](legacy/CHANGELOG-legac
 
 ### Docs
 
+- Legacy public Tunnel Monitor **1.3.0**: opt-in UniFi gateway self-healing — [`heal.sh`](legacy/Public/unifi/heal.sh), [Self-healing](legacy/Public/docs/self-healing.md).
 - Legacy public [troubleshooting](legacy/Public/docs/troubleshooting.md): five real-world IPsec failure modes (vti DOWN, `NO_PROPOSAL_CHOSEN` after reboot, ISP modem DMZ/Advanced Security, `ipsec`-only firmware note, compound-failure sequencing). Published on UniFi-Tunnel-Monitor as v1.2.0.
 
 ## [1.1.0] — 2026-05-30
