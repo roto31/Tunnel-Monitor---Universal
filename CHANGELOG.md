@@ -7,6 +7,17 @@ Versioning follows [SemVer](https://semver.org/).
 
 Legacy bash monitor history: [legacy/CHANGELOG-legacy.md](legacy/CHANGELOG-legacy.md).
 
+## Documentation
+
+- [Docs index](docs/README.md)
+- [Legacy public troubleshooting](legacy/Public/docs/troubleshooting.md)
+
+## [Unreleased]
+
+### Docs
+
+- Legacy public [troubleshooting](legacy/Public/docs/troubleshooting.md): five real-world IPsec failure modes (vti DOWN, `NO_PROPOSAL_CHOSEN` after reboot, ISP modem DMZ/Advanced Security, `ipsec`-only firmware note, compound-failure sequencing). Published on UniFi-Tunnel-Monitor as v1.2.0.
+
 ## [1.1.0] — 2026-05-30
 
 ### Added — Code
