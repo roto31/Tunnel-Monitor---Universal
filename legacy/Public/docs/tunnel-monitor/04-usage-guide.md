@@ -26,7 +26,6 @@ Click the menu bar dot to open the status window.
 | Reason line | Human-readable diagnosis (e.g. HEALTHY, DDNS DRIFT) |
 | Down duration | Shown when red; from `down_since` or alert timestamp |
 | Last check | `timestamp` from `state.json` |
-| Schema | `schema_version` (v2 when written by core ≥2.0) |
 | UP / DOWN badge | `alert_state` |
 
 ### Checks
@@ -39,21 +38,22 @@ Click the menu bar dot to open the status window.
 | DNS | `checks.dns` match vs expected |
 | Failure count | Increments each unhealthy cycle until recovery |
 
-### Stale state banner
-
-If `timestamp` is older than **~12 minutes**, an orange banner appears:
-*state.json may be stale — try Force Check or verify launchd.*
-
-### Technical detail
-
-Expand **Technical detail** for operator runbook text and numbered **Suggested steps**
-(same content as `tunnel-check --explain`).
-
 ### Dedup section
 
-Shows whether the gateway SSH read succeeded and the remote state string (e.g. `0:UP`).
-Title comes from app branding (`Router dedup` / `UDR7 dedup`). Reads `gateway_dedup`
-with legacy fallback.
+Shows whether the gateway SSH read succeeded and the remote state string (e.g. `0:UP`). Title comes from app branding (`UDR7 dedup` or `Router dedup`).
+
+### Spoke policy route
+
+Shown only when `SPOKE_POLICY_ENABLED` is true. The card reads a file on the spoke gateway. It does not change `diagnosis` and it does not send email. A healthy tunnel with an advisory is yellow.
+
+| State line | Card |
+|------------|------|
+| `0:UP` | Green — source prefix is routed through the tunnel |
+| `N:UP` with N ≠ 0 | Yellow — recent failures, currently up |
+| `N:DOWN` | Red — traffic is not using the tunnel |
+| file missing | Gray — checker is not installed |
+
+**Install Checker** (`sudo tunnel-check --spoke-install-checker`) copies `spoke-policy-check.sh` to the spoke, enables a 5-minute systemd timer, and writes `/data/tunnel-monitor/policy-state`. Set `SPOKE_POLICY_SOURCE_CIDR` first (Setup → **Policy source prefix**). Authorize the Mac's SSH key on the spoke once; **Spoke SSH Test** checks that login. Re-run **Install Checker** after a gateway firmware update if the timer was wiped.
 
 ### Actions
 
@@ -65,9 +65,9 @@ with legacy fallback.
 | **Test Email** | Runs `tunnel-check --test-email` |
 | **Tail Log** | Opens Terminal `tail -f` on `monitor.log` |
 | **Edit Config** | Terminal `sudo -e config.env` (async; status line in popover) |
-| **SSH Test** | `tunnel-check --ssh-test` |
-| **Explain** | Terminal `tunnel-check --explain` (diagnosis runbook) |
-| **Preflight** | Terminal `tunnel-check --preflight` (deps + config checks) |
+| **SSH Test** | Admin `tunnel-check --ssh-test` |
+| **Spoke SSH Test** | Admin `tunnel-check --spoke-test` |
+| **Install Checker** | Admin install of the spoke policy-state writer |
 | **Reset State** | Admin reset alert latch to UP |
 | **Copy SSH Auth Cmd** | Builds `authorized_keys` one-liner to clipboard |
 | **Reveal** | Finder reveals `state.json` |
@@ -134,7 +134,7 @@ tunnel-check --test-email
 tunnel-check --test-notify
 sudo tunnel-check --check-now
 sudo tunnel-check --reset
-tunnel-check --ssh-test
+sudo tunnel-check --ssh-test
 ```
 
 See [../../mac/README.md](../../mac/README.md).

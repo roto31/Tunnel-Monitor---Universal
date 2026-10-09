@@ -62,22 +62,20 @@ sequenceDiagram
   participant E as send-email.sh
   participant N as notify.sh
   participant App as Tunnel Monitor.app
-  participant DR as DiagnosisReference
 
   LD->>M: every 300s
   M->>M: ping REMOTE_LAN_IP REMOTE_WAN_IP 1.1.1.1
   M->>M: dig REMOTE_DDNS compare REMOTE_WAN_IP
   M->>M: SSH read gateway dedup state
-  M->>M: tm_compute_diagnosis
-  M->>S: atomic write .tmp then mv schema v2
+  M->>M: compute_diagnosis
+  M->>S: atomic write .tmp then mv
   alt failures >= FAILURE_THRESHOLD and alert_state was UP
     M->>E: alert email unless dedup suppresses
     M->>N: banner Tunnel DOWN
   end
   loop every 5 to 30s
     App->>S: read JSON
-    App->>DR: guide for diagnosis
-    App->>App: StatusPresentation traffic light stale check
+    App->>App: StatusPresentation traffic light
   end
 ```
 
@@ -94,7 +92,7 @@ flowchart TD
   ourNet -->|yes| tunnel{tunnel ping OK?}
   tunnel -->|yes| healthy[HEALTHY recovery if was DOWN]
   tunnel -->|no| udr7reach{Gateway SSH reachable?}
-  udr7reach -->|no| udr7unreach[GATEWAY_UNREACHABLE Mac alerts]
+  udr7reach -->|no| udr7unreach[UDR7_UNREACHABLE Mac alerts]
   udr7reach -->|yes| disagree{Gateway says 0:UP?}
   disagree -->|yes| disagreement[DISAGREEMENT Mac alerts]
   disagree -->|no| dns{DDNS matches REMOTE_WAN_IP?}
@@ -112,24 +110,7 @@ flowchart TD
   dedup -->|no| emailBanner[Email and banner]
 ```
 
-**Dedup email suppress:** When the gateway monitor is reachable and already in a DOWN alert state (`N:DOWN`), the Mac suppresses duplicate email but still shows a banner (except for `GATEWAY_UNREACHABLE` and `DISAGREEMENT` paths).
-
----
-
-## GUI presentation layer (v2.0.1+)
-
-```mermaid
-flowchart LR
-  stateJson[(state.json)] --> monitorState[MonitorState]
-  monitorState --> stale{timestamp older than 12m?}
-  stale -->|yes| banner[Stale banner in popover]
-  monitorState --> statusPres[StatusPresentation]
-  statusPres --> diagRef[DiagnosisReference.guide]
-  diagRef --> tech[Technical detail plus steps]
-  statusPres --> popover[Menu bar UI]
-```
-
-See [../v2/gui-operator-features.md](../v2/gui-operator-features.md).
+**Dedup email suppress:** When the gateway monitor is reachable and already in a DOWN alert state (`N:DOWN`), the Mac suppresses duplicate email but still shows a banner (except for `UDR7_UNREACHABLE` and `DISAGREEMENT` paths).
 
 ---
 
@@ -187,6 +168,9 @@ sequenceDiagram
 | `checks.tunnel` / `remote_wan` / `our_internet` | Per-check `ok`, `target`, `latency_ms` |
 | `checks.dns` | `host`, `resolved`, `expected`, `match` |
 | `udr7_dedup` or `router_dedup` | `reachable`, `state` (e.g. `0:UP`), `checked_at` |
+| `spoke_policy` | `enabled`, `reachable`, `state` (`0:UP`, `N:DOWN`, or null), `label`, `checked_at` |
+| `remote_wan_observed` | Public IPv4 seen from the spoke, when the spoke SSH read succeeds |
+| `advisories` | UI-only codes. Empty when the spoke feature is off. Never emailed. |
 
 The app decoder accepts either `udr7_dedup` or `router_dedup` for sanitized vs private deployments.
 
@@ -196,8 +180,8 @@ The app decoder accepts either `udr7_dedup` or `router_dedup` for sanitized vs p
 
 | UI | Condition (simplified) |
 |----|-------------------------|
-| Green | `diagnosis` HEALTHY and `failure_count` 0 |
-| Yellow | Unhealthy diagnosis or failures while `alert_state` still UP |
+| Green | `diagnosis` HEALTHY and no spoke advisories |
+| Yellow | Spoke advisory while `diagnosis` is still HEALTHY, or failures while `alert_state` is UP |
 | Red | `alert_state` DOWN |
 
 Poll interval is **not** the daemon interval. Settings only control how often the app re-reads `state.json` (5, 15, or 30 seconds).

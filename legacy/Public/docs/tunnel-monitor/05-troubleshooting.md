@@ -28,18 +28,13 @@ Aligned with `monitor.sh` `compute_diagnosis` (first match wins).
 |------|---------|--------------|
 | `HEALTHY` | Tunnel ping OK | No (recovery if was DOWN) |
 | `OUR_INTERNET_DOWN` | Mac has no internet (1.1.1.1) | No; counter frozen |
-| `GATEWAY_UNREACHABLE` | Cannot SSH to gateway for dedup | Yes (Mac leads) |
-| `UDR7_UNREACHABLE` / `ROUTER_UNREACHABLE` | Legacy codes in old state only | Same as GATEWAY_UNREACHABLE |
+| `UDR7_UNREACHABLE` | Cannot SSH to gateway for dedup | Yes (Mac leads) |
 | `DISAGREEMENT` | Gateway says `0:UP`, Mac sees tunnel down | Yes |
 | `DDNS_DRIFT` | DDNS does not match `REMOTE_WAN_IP` | Yes after threshold |
 | `REMOTE_INTERNET_DOWN` | Remote WAN ping fails, DNS OK | Yes after threshold |
 | `TUNNEL_DOWN` | Tunnel down, WAN/DNS look OK | Yes after threshold |
 
-Human labels and **Technical detail** in the GUI come from `DiagnosisReference.swift`
-(aligned with `vendor/core/lib/operator-explain.sh` and `tunnel-check --explain`).
-
-**CLI runbook:** `tunnel-check --explain`  
-**Preflight:** `tunnel-check --preflight`
+Human labels in the GUI come from the same codes (e.g. **DDNS DRIFT — fix No-IP record**).
 
 **Threshold:** `failure_count` must reach `FAILURE_THRESHOLD` (default 3) with `alert_state` UP before the first down alert. Each daemon cycle is five minutes.
 
@@ -66,9 +61,19 @@ Human labels and **Technical detail** in the GUI come from `DiagnosisReference.s
 
 | Symptom | Steps |
 |---------|--------|
-| Dedup always unreachable | **SSH Test**; run **Copy SSH Auth Cmd** once; verify `UDR7_HOST` is LAN IP of gateway |
-| Permission denied | Key path `UDR7_KEY` mode `600`; pubkey on gateway `authorized_keys` |
-| Wrong state path | Match `UDR7_STATE_PATH` to gateway monitor (`/data/tunnel-monitor/state`) |
+| Dedup always unreachable | **SSH Test** (admin prompt) or `sudo tunnel-check --ssh-test`; run **Copy SSH Auth Cmd** once; verify `ROUTER_HOST` or `UDR7_HOST` is the gateway LAN IP |
+| Permission denied | Run as root (`sudo` / in-app admin prompt). Key path `ROUTER_KEY`/`UDR7_KEY` mode `600`; pubkey on gateway `authorized_keys` |
+| Wrong state path | Match `ROUTER_STATE_PATH`/`UDR7_STATE_PATH` to gateway monitor (`/data/tunnel-monitor/state`) |
+
+## Spoke policy route
+
+| Symptom | Steps |
+|---------|--------|
+| Spoke unreachable | **Spoke SSH Test**. Authorize the monitor public key in the spoke `root` `authorized_keys`. This is the spoke console SSH user, not the UniFi device-SSH username. |
+| Not installed on spoke | Set `SPOKE_POLICY_SOURCE_CIDR`, then **Install Checker**. The Mac only reads `/data/tunnel-monitor/policy-state`; it does not create that file until the checker is installed. |
+| Card stays yellow after install | The checker counts failures. `N:UP` with N ≠ 0 clears on the next successful write (`0:UP`). |
+| Route exists in UniFi but the card is red | The checker looks for that source prefix in the gateway policy-routing ipset and a tunnel routing table (`tun`, `vtun`, `vti`, or `wg`). A kill-switch blackhole table is DOWN. |
+| Checker gone after firmware | **Install Checker** again. UniFi can wipe `/etc/systemd/system`. The script under `/data/tunnel-monitor/` may still be there. |
 
 ---
 
