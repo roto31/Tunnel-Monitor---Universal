@@ -6,7 +6,18 @@ Download macOS builds from the GitHub **Releases** tab:
 
 **https://github.com/roto31/Tunnel-Monitor---Universal/releases**
 
-## Current release: v2.0.1
+## Sanitized public line (UniFi site-to-site)
+
+`legacy/Public` mirrors [UniFi-Tunnel-Monitor](https://github.com/roto31/UniFi-Tunnel-Monitor). These tags do **not** replace Universal Latest (`v2.0.0`).
+
+| Tag | Package | Notes |
+|-----|---------|--------|
+| [tunnel-monitor-v1.5.0](https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/tunnel-monitor-v1.5.0) | `Tunnel-Monitor-1.5.0.pkg` | Spoke policy-route card and **Install Checker**. Developer ID signed. Notarization is not stapled until App Store Connect → Business shows the agreement Active. |
+| [tunnel-monitor-v1.3.1](https://github.com/roto31/Tunnel-Monitor---Universal/releases/tag/tunnel-monitor-v1.3.1) | `Tunnel-Monitor-1.3.1.pkg` | Previous notarized public package |
+
+Docs for 1.5.0 live in [`Public/docs/`](Public/docs/) and [`Public/mac/CHANGELOG.md`](Public/mac/CHANGELOG.md). Same text as the public repo: [v1.5.0 release notes](https://github.com/roto31/UniFi-Tunnel-Monitor/blob/v1.5.0/docs/release-notes/v1.5.0.md).
+
+## Current Universal release: v2.0.1
 
 | Artifact | Description |
 |----------|-------------|
