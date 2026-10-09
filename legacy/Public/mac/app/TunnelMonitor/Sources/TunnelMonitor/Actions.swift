@@ -57,8 +57,13 @@ enum Actions {
     }
 
     static func sshTest() -> String {
-        let (code, out) = run(tunnelCheckBin, args: ["--ssh-test"])
+        let (code, out) = runAsRoot("\(tunnelCheckBin) --ssh-test")
         return code == 0 ? "OK\n\(out)" : "SSH test failed (\(code)):\n\(out)"
+    }
+
+    static func spokeSshTest() -> String {
+        let (code, out) = runAsRoot("\(tunnelCheckBin) --spoke-test")
+        return code == 0 ? "OK\n\(out)" : "Spoke SSH test failed (\(code)):\n\(out)"
     }
 
     /// Opens Terminal without blocking the main thread (required for MenuBarExtra actions).
@@ -124,16 +129,6 @@ enum Actions {
     static func tailLog() -> String {
         openInTerminal("tail -f \(MonitorPaths.logFile)")
         return "Opening log tail in Terminal."
-    }
-
-    static func openExplainInTerminal() -> String {
-        openInTerminal("\(tunnelCheckBin) --explain")
-        return "Opening diagnosis runbook in Terminal."
-    }
-
-    static func openPreflightInTerminal() -> String {
-        openInTerminal("\(tunnelCheckBin) --preflight")
-        return "Opening preflight checks in Terminal."
     }
 
     @MainActor

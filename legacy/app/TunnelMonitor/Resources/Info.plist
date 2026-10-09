@@ -19,8 +19,12 @@
     <string>com.ruter.tunnel-monitor</string>
     <key>TMDedupSectionTitle</key>
     <string>UDR7 dedup</string>
+    <key>TMSpokePolicySectionTitle</key>
+    <string>Apple TV policy route</string>
     <key>TMStatusBannerTitle</key>
     <string>Tunnel Monitor</string>
+    <key>TMSpokePolicySectionTitle</key>
+    <string>Apple TV policy route</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>

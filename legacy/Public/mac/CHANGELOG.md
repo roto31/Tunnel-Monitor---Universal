@@ -11,6 +11,42 @@ Bundled data: [`datasets/bundle-manifest.json`](../datasets/bundle-manifest.json
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-08
+
+### Added
+
+- Opt-in spoke policy-route visibility (`SPOKE_POLICY_ENABLED`, default off). After the tunnel ping succeeds, one SSH read of the spoke policy-state file plus the spoke's current public IP. See [Placeholders](../PLACEHOLDERS.md).
+- Status card and Checks row for the policy route and observed remote WAN. A healthy tunnel with an advisory is yellow. Menu action **Spoke SSH Test** (`tunnel-check --spoke-test`).
+- Advisories (`SPOKE_UNREACHABLE`, `SPOKE_POLICY_MISSING`, `SPOKE_POLICY_DOWN`, `SPOKE_POLICY_DEGRADED`, `REMOTE_WAN_IP_STALE`, `REMOTE_DDNS_STALE`). One macOS banner on each transition. No email. `diagnosis` is unchanged.
+- `state.json` keys `spoke_policy`, `remote_wan_observed`, and `advisories` (null / empty when the feature is off). 1.3.x files still decode.
+
+### Changed
+
+- Gateway diagnostics are transport-aware: `[ IPsec Status ]` when `ipsec statusall` shows SAs, otherwise `[ OpenVPN Status ]`. `heal.sh` is unchanged and stays off.
+- Setup Save merges wizard keys into `config.env` and keeps unknown keys.
+
+### Fixed
+
+- A healthy tunnel with a spoke advisory no longer shows "Down for …" from an old alert timestamp.
+- Menu copy no longer says the tunnel is IPsec. `TUNNEL_DOWN` tells you to check the site-to-site VPN on the router.
+- `ROUTER_UNREACHABLE` and `UDR7_UNREACHABLE` both map to the gateway name from app branding. Context: on 2026-10-08 a spoke policy route that had been deleted with its old IPsec target (2026-05-25) was found still missing, so clients at the spoke used the local WAN while every tunnel check stayed green.
+
+### Data
+
+- `wizard-fields` dataRevision `public-v2` (optional spoke section).
+
+## [1.3.1] - 2026-09-06
+
+### Fixed
+
+- Menu-bar **SSH Test** prompts for administrator (same as Force Check). `config.env` and the SSH key are `0600 root`, so an unprivileged `tunnel-check --ssh-test` always failed with Permission denied.
+- Dedup SSH reads `UDR7_*` as aliases of `ROUTER_*`. Wizard Save no longer leaves the script targeting the dummy `192.0.2.254` fallback. Empty host now errors instead of connecting to a documentation IP.
+- Setup Save writes both `ROUTER_*` and `UDR7_*` so either name works after the next Save.
+
+### Docs
+
+- CLI cheat sheet and [Gateway unreachable (Mac)](../docs/troubleshooting.md#gateway-unreachable-mac) require `sudo tunnel-check --ssh-test`.
+
 ## [1.3.0] - 2026-09-06
 
 ### Added

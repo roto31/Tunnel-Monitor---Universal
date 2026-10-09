@@ -9,6 +9,14 @@ struct DedupBlock: Decodable, Equatable {
     let checked_at: String?
 }
 
+struct SpokePolicyBlock: Decodable, Equatable {
+    let enabled: Bool?
+    let reachable: Bool?
+    let state: String?
+    let label: String?
+    let checked_at: String?
+}
+
 struct Snapshot: Decodable, Equatable {
     struct PingCheck: Decodable, Equatable {
         let target: String?
@@ -37,32 +45,15 @@ struct Snapshot: Decodable, Equatable {
     let last_recovery_sent_at: String?
     let diagnosis: String
     let down_since: String?
-    let schema_version: Int?
-
-    var schemaVersionLabel: String {
-        if let v = schema_version { return String(v) }
-        return "1 (legacy)"
-    }
-
-    /// Stale if older than ~12 minutes (2× default 5-minute check interval).
-    func isStale(relativeTo now: Date = Date(), thresholdSeconds: TimeInterval = 720) -> Bool {
-        guard let start = parseISO8601(timestamp) else { return false }
-        return now.timeIntervalSince(start) > thresholdSeconds
-    }
-
-    private func parseISO8601(_ s: String) -> Date? {
-        let f1 = ISO8601DateFormatter()
-        f1.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = f1.date(from: s) { return d }
-        let f2 = ISO8601DateFormatter()
-        return f2.date(from: s)
-    }
+    let spoke_policy: SpokePolicyBlock?
+    let remote_wan_observed: String?
+    let advisories: [String]
 
     enum CodingKeys: String, CodingKey {
         case timestamp, alert_state, failure_count, checks
-        case gateway_dedup, udr7_dedup, router_dedup
+        case udr7_dedup, router_dedup
         case last_alert_sent_at, last_recovery_sent_at, diagnosis, down_since
-        case schema_version
+        case spoke_policy, remote_wan_observed, advisories
     }
 
     init(from decoder: Decoder) throws {
@@ -75,11 +66,11 @@ struct Snapshot: Decodable, Equatable {
         last_recovery_sent_at = try c.decodeIfPresent(String.self, forKey: .last_recovery_sent_at)
         diagnosis = try c.decode(String.self, forKey: .diagnosis)
         down_since = try c.decodeIfPresent(String.self, forKey: .down_since)
-        schema_version = try c.decodeIfPresent(Int.self, forKey: .schema_version)
+        spoke_policy = try c.decodeIfPresent(SpokePolicyBlock.self, forKey: .spoke_policy)
+        remote_wan_observed = try c.decodeIfPresent(String.self, forKey: .remote_wan_observed)
+        advisories = try c.decodeIfPresent([String].self, forKey: .advisories) ?? []
 
-        if let g = try c.decodeIfPresent(DedupBlock.self, forKey: .gateway_dedup) {
-            dedup = g
-        } else if let u = try c.decodeIfPresent(DedupBlock.self, forKey: .udr7_dedup) {
+        if let u = try c.decodeIfPresent(DedupBlock.self, forKey: .udr7_dedup) {
             dedup = u
         } else if let r = try c.decodeIfPresent(DedupBlock.self, forKey: .router_dedup) {
             dedup = r
@@ -163,8 +154,7 @@ final class MonitorState: ObservableObject {
         do {
             let data = try Data(contentsOf: url, options: [.uncached, .mappedIfSafe])
             let decoded = try JSONDecoder().decode(Snapshot.self, from: data)
-            let readAt = Date()
-            let presentation = StatusPresentation.from(snapshot: decoded, readAt: readAt)
+            let presentation = StatusPresentation.from(snapshot: decoded)
             let widget: WidgetStatusSnapshot? = syncWidget
                 ? WidgetStatusSnapshot.from(presentation: presentation, lastCheck: decoded.timestamp)
                 : nil

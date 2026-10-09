@@ -15,12 +15,9 @@ MONITOR_BIN="${INSTALL_DIR}/monitor.sh"
 SEND_EMAIL_BIN="${INSTALL_DIR}/send-email.sh"
 NOTIFY_BIN="${INSTALL_DIR}/notify.sh"
 SSH_ROUTER_BIN="${INSTALL_DIR}/ssh-router-state.sh"
+SSH_SPOKE_BIN="${INSTALL_DIR}/ssh-spoke-state.sh"
 LAUNCHD_LABEL="com.example.tunnel-monitor"
 PLIST_PATH="/Library/LaunchDaemons/${LAUNCHD_LABEL}.plist"
-OPERATOR_LIB="${INSTALL_DIR}/core/lib/operator-explain.sh"
-if [[ ! -f "${OPERATOR_LIB}" ]]; then
-    OPERATOR_LIB="${INSTALL_DIR}/lib/operator-explain.sh"
-fi
 
 show_help() {
     cat <<'EOF'
@@ -34,9 +31,8 @@ USAGE
     tunnel-check --reset         Reset state.json to a fresh UP state
     tunnel-check --tail          tail -f monitor.log
     tunnel-check --history       Last 50 lines of monitor.log
-    tunnel-check --ssh-test      Verify SSH-based gateway dedup works
-    tunnel-check --explain       Runbook for current diagnosis code
-    tunnel-check --preflight     Dependency and config sanity checks
+    tunnel-check --ssh-test      Verify SSH-based ROUTER dedup works (requires sudo)
+    tunnel-check --spoke-test    Verify spoke policy-route SSH (requires sudo)
     tunnel-check --status        launchctl print of the daemon
     tunnel-check --help
 
@@ -107,9 +103,6 @@ cmd_status_pretty() {
     printf '  Alert state:   %s\n' "$(color "${color_for_state}" "${alert_state}")"
     printf '  Failure count: %s\n' "${failure_count}"
     printf '  Last check:    %s\n' "${timestamp}"
-    local schema
-    schema="$(jq -r '.schema_version // "1 (legacy)"' "${STATE_FILE}")"
-    printf '  Schema:        v%s\n' "${schema}"
     echo
 
     color bold "Checks"; echo
@@ -124,12 +117,26 @@ cmd_status_pretty() {
     ' "${STATE_FILE}"
     echo
 
-    color bold "Gateway dedup"; echo
+    if [[ "$(jq -r '.spoke_policy.enabled // false' "${STATE_FILE}")" == "true" ]]; then
+        color bold "Spoke policy"; echo
+        jq -r '
+          .spoke_policy as $s |
+          "  Label:     " + ($s.label // "<n/a>") + "\n" +
+          "  Reachable: " + ($s.reachable | tostring) + "\n" +
+          "  State:     " + ($s.state // "<n/a>") + "\n" +
+          "  Observed:  " + (.remote_wan_observed // "<n/a>") + "\n" +
+          "  Advisories:" + (if (.advisories | length) == 0 then " <none>" else " " + (.advisories | join(", ")) end)
+        ' "${STATE_FILE}"
+        echo
+        echo
+    fi
+
+    color bold "ROUTER dedup"; echo
     jq -r '
-      (.gateway_dedup // .udr7_dedup // .router_dedup // {reachable: false, state: null, checked_at: null}) |
+      .router_dedup |
       "  Reachable: " + (.reachable | tostring) + "\n" +
       "  State:     " + (.state // "<n/a>")    + "\n" +
-      "  Checked:   " + (.checked_at // "<n/a>")
+      "  Checked:   " + .checked_at
     ' "${STATE_FILE}"
     echo
 
@@ -186,9 +193,6 @@ cmd_reset() {
           our_internet: { target: null, ok: null, latency_ms: null },
           dns:          { host: null, resolved: null, expected: null, match: null }
         },
-        schema_version: 2,
-        gateway_dedup: { reachable: false, state: null, checked_at: $ts },
-        udr7_dedup: { reachable: false, state: null, checked_at: $ts },
         router_dedup: { reachable: false, state: null, checked_at: $ts },
         last_alert_sent_at: null,
         last_recovery_sent_at: null,
@@ -215,7 +219,69 @@ cmd_history() {
     tail -n 50 "${LOG_FILE}"
 }
 
+cmd_spoke_test() {
+    require_root
+    local cfg="${INSTALL_DIR}/config.env"
+    local key_path host enabled remote_wan line1 line2 ssh_ok="FAIL"
+
+    row() {
+        # row <label> <PASS|FAIL|value>
+        printf '  %-18s %s\n' "$1" "$2"
+    }
+
+    echo "Spoke SSH test"
+    if [[ ! -f "${cfg}" ]]; then
+        row "Config present" "FAIL"
+        echo "ERROR: ${cfg} missing" >&2
+        exit 2
+    fi
+    row "Config present" "PASS"
+
+    # shellcheck disable=SC1090
+    source "${cfg}"
+    enabled="${SPOKE_POLICY_ENABLED:-false}"
+    host="${SPOKE_HOST:-}"
+    key_path="${SPOKE_KEY:-/opt/tunnel-monitor/.ssh/id_ed25519}"
+    remote_wan="${REMOTE_WAN_IP:-}"
+
+    if [[ -f "${key_path}" ]]; then
+        row "Key present" "PASS"
+    else
+        row "Key present" "FAIL (${key_path})"
+        exit 2
+    fi
+
+    if [[ ! -x "${SSH_SPOKE_BIN}" ]]; then
+        row "SSH" "FAIL (ssh-spoke-state.sh missing)"
+        exit 1
+    fi
+
+    local raw
+    if raw="$("${SSH_SPOKE_BIN}" 2>&1)"; then
+        ssh_ok="PASS"
+        line1="$(printf '%s\n' "${raw}" | sed -n '1p')"
+        line2="$(printf '%s\n' "${raw}" | sed -n '2p')"
+    else
+        row "SSH" "FAIL"
+        printf '%s\n' "${raw}" >&2
+        exit 1
+    fi
+    row "SSH" "${ssh_ok}"
+    row "Policy state" "${line1:-<empty>}"
+    if [[ "${line2:-}" == "${remote_wan}" ]]; then
+        row "Observed WAN" "${line2} (matches REMOTE_WAN_IP)"
+    elif [[ -z "${line2}" || "${line2}" == "UNKNOWN" ]]; then
+        row "Observed WAN" "${line2:-<empty>} (no comparison)"
+    else
+        row "Observed WAN" "${line2} (differs from REMOTE_WAN_IP ${remote_wan})"
+    fi
+    if [[ "${enabled}" != "true" ]]; then
+        echo "NOTE: SPOKE_POLICY_ENABLED is not true; monitor.sh will not call this check."
+    fi
+}
+
 cmd_ssh_test() {
+    require_root
     if [[ ! -x "${SSH_ROUTER_BIN}" ]]; then
         echo "ERROR: ${SSH_ROUTER_BIN} not executable" >&2
         exit 1
@@ -226,32 +292,6 @@ cmd_ssh_test() {
         echo "FAIL: ssh-router-state.sh failed (see above)" >&2
         exit 1
     fi
-}
-
-cmd_explain() {
-    local diagnosis="UNKNOWN"
-    if [[ -f "${STATE_FILE}" ]]; then
-        diagnosis="$(jq -r '.diagnosis // "UNKNOWN"' "${STATE_FILE}")"
-    fi
-    if [[ -f "${OPERATOR_LIB}" ]]; then
-        # shellcheck source=/dev/null
-        source "${OPERATOR_LIB}"
-        tm_explain_diagnosis "${diagnosis}"
-    else
-        echo "Diagnosis: ${diagnosis}"
-        echo "Install operator-explain.sh via monitor-engine core deploy."
-    fi
-}
-
-cmd_preflight() {
-    if [[ -f "${OPERATOR_LIB}" ]]; then
-        # shellcheck source=/dev/null
-        source "${OPERATOR_LIB}"
-        tm_run_preflight
-        exit $?
-    fi
-    echo "ERROR: ${OPERATOR_LIB} not found" >&2
-    exit 3
 }
 
 cmd_daemon_status() {
@@ -271,8 +311,7 @@ case "${1:-}" in
     --tail)            cmd_tail ;;
     --history)         cmd_history ;;
     --ssh-test)        cmd_ssh_test ;;
-    --explain)         cmd_explain ;;
-    --preflight)       cmd_preflight ;;
+    --spoke-test)      cmd_spoke_test ;;
     --status)          cmd_daemon_status ;;
     --help|-h|help)    show_help ;;
     *)

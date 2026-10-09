@@ -36,10 +36,6 @@ struct StatusPresentation: Equatable {
     let downDurationText: String?
     let failureCount: Int
     let alertState: String
-    let technicalDetail: String?
-    let recommendedSteps: [String]
-    let isStateStale: Bool
-    let schemaVersionLabel: String?
 
     static func unavailable(error: String?) -> StatusPresentation {
         let detail = error ?? "Monitor state unavailable"
@@ -49,36 +45,23 @@ struct StatusPresentation: Equatable {
             issues: [StatusIssue(id: "no_state", message: detail, severity: .yellow)],
             downDurationText: nil,
             failureCount: 0,
-            alertState: "UNKNOWN",
-            technicalDetail: "The menu bar app reads /opt/tunnel-monitor/state.json written by the launchd daemon. If missing, run install.sh and Force Check.",
-            recommendedSteps: [
-                "Confirm launchd job is loaded.",
-                "Run tunnel-check --preflight in Terminal."
-            ],
-            isStateStale: false,
-            schemaVersionLabel: nil
+            alertState: "UNKNOWN"
         )
     }
 
-    static func from(snapshot: Snapshot, readAt: Date = Date()) -> StatusPresentation {
+    static func from(snapshot: Snapshot) -> StatusPresentation {
         let light = computeTrafficLight(snapshot: snapshot)
         let issues = buildIssues(snapshot: snapshot, trafficLight: light)
         let reason = humanDiagnosis(snapshot.diagnosis)
         let downText = downDurationText(for: snapshot)
-        let guide = DiagnosisReference.guide(for: snapshot.diagnosis)
-        let stale = snapshot.isStale(relativeTo: readAt)
 
         return StatusPresentation(
             trafficLight: light,
             reasonText: reason,
             issues: issues,
-            downDurationText: light == .red ? downText : (light == .yellow ? downText : nil),
+            downDurationText: snapshot.diagnosis == "HEALTHY" ? nil : downText,
             failureCount: snapshot.failure_count,
-            alertState: snapshot.alert_state,
-            technicalDetail: guide.technicalDetail,
-            recommendedSteps: guide.steps,
-            isStateStale: stale,
-            schemaVersionLabel: snapshot.schemaVersionLabel
+            alertState: snapshot.alert_state
         )
     }
 
@@ -87,6 +70,9 @@ struct StatusPresentation: Equatable {
             return .red
         }
         if snapshot.diagnosis == "HEALTHY" && snapshot.failure_count == 0 {
+            if !snapshot.advisories.isEmpty {
+                return .yellow
+            }
             return .green
         }
         if snapshot.diagnosis != "HEALTHY" || snapshot.failure_count > 0 {
@@ -143,6 +129,8 @@ struct StatusPresentation: Equatable {
             list.append(StatusIssue(id: "tunnel_down", message: "Tunnel down — remote WAN and DDNS OK", severity: sev))
         }
 
+        list.append(contentsOf: advisoryIssues(snapshot))
+
         if snapshot.failure_count > 0 && snapshot.alert_state == "UP" {
             list.append(StatusIssue(
                 id: "failures",
@@ -161,16 +149,49 @@ struct StatusPresentation: Equatable {
         case "DDNS_DRIFT":           return "DDNS DRIFT — fix No-IP record"
         case "REMOTE_INTERNET_DOWN": return "REMOTE INTERNET DOWN"
         case "OUR_INTERNET_DOWN":    return "OUR INTERNET DOWN (no alert)"
-        case "GATEWAY_UNREACHABLE",
-             "UDR7_UNREACHABLE",
-             "ROUTER_UNREACHABLE": return "GATEWAY UNREACHABLE — LAN client alerting"
-        case "DISAGREEMENT":         return "DISAGREEMENT (gateway says UP)"
+        case "UDR7_UNREACHABLE", "ROUTER_UNREACHABLE":
+            return "\(AppBranding.routerShortName) UNREACHABLE — Mac taking over"
+        case "DISAGREEMENT":         return "DISAGREEMENT (\(AppBranding.routerShortName) says UP)"
         default:                     return code
         }
     }
 
     private static func diagnosisIssueMessage(_ code: String) -> String {
-        DiagnosisReference.guide(for: code).summary
+        humanDiagnosis(code)
+    }
+
+    private static func advisoryIssues(_ snapshot: Snapshot) -> [StatusIssue] {
+        let trimmed = snapshot.spoke_policy?.label?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let title = trimmed.isEmpty ? AppBranding.spokePolicySectionTitle : trimmed
+        let observed = snapshot.remote_wan_observed ?? "unknown"
+        return snapshot.advisories.map { code in
+            let message: String
+            let severity: TrafficLight
+            switch code {
+            case "SPOKE_POLICY_DOWN":
+                message = "\(title): traffic is not using the tunnel (policy route broken on the spoke)"
+                severity = .red
+            case "SPOKE_POLICY_DEGRADED":
+                message = "\(title): recovering (recent failures, currently up)"
+                severity = .yellow
+            case "SPOKE_POLICY_MISSING":
+                message = "\(title): not installed on the spoke"
+                severity = .yellow
+            case "SPOKE_UNREACHABLE":
+                message = "Spoke unreachable — policy route was not checked"
+                severity = .red
+            case "REMOTE_WAN_IP_STALE":
+                message = "Remote WAN observed \(observed) — update REMOTE_WAN_IP / No-IP"
+                severity = .yellow
+            case "REMOTE_DDNS_STALE":
+                message = "Remote WAN observed \(observed) does not match DDNS — update No-IP"
+                severity = .yellow
+            default:
+                message = code
+                severity = .yellow
+            }
+            return StatusIssue(id: "advisory_\(code)", message: message, severity: severity)
+        }
     }
 
     private static func downDurationText(for snapshot: Snapshot) -> String? {

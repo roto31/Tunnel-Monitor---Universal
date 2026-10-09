@@ -10,6 +10,8 @@
 #                                 If set, the .app is codesigned with hardened
 #                                 runtime + timestamp. If unset, adhoc-signs the
 #                                 bundle (needed for launch from /Applications).
+#   CODESIGN_KEYCHAIN             Optional path to a keychain for --keychain
+#                                 (CI ephemeral keychain; avoids login ACL).
 # =============================================================================
 
 set -euo pipefail
@@ -169,11 +171,27 @@ else
     green "Assembled ${APP_BUNDLE}"
 fi
 
+# Optional Mac Studio branding. Source Info.plist stays sanitized.
+# Set only for a private local build; do not commit the resulting bundle.
+apply_branding_override() {
+    local key="$1" val="$2" plist="${APP_BUNDLE}/Contents/Info.plist"
+    [[ -n "${val}" && -f "${plist}" ]] || return 0
+    if ! /usr/libexec/PlistBuddy -c "Set :${key} ${val}" "${plist}" 2>/dev/null; then
+        /usr/libexec/PlistBuddy -c "Add :${key} string ${val}" "${plist}"
+    fi
+}
+apply_branding_override TMLaunchDaemonLabel "${TM_LAUNCH_DAEMON_LABEL:-}"
+apply_branding_override TMDedupSectionTitle "${TM_DEDUP_SECTION_TITLE:-}"
+apply_branding_override TMSpokePolicySectionTitle "${TM_SPOKE_POLICY_TITLE:-}"
+
 step "Phase 3 — codesign"
 ENTITLEMENTS="${ROOT_DIR}/build/TunnelMonitor.entitlements"
 if [[ -n "${DEVELOPER_ID_APPLICATION:-}" ]]; then
     SIGN_ARGS=(--force --options runtime --timestamp \
         --sign "${DEVELOPER_ID_APPLICATION}")
+    if [[ -n "${CODESIGN_KEYCHAIN:-}" ]]; then
+        SIGN_ARGS+=(--keychain "${CODESIGN_KEYCHAIN}")
+    fi
     if [[ -f "${ENTITLEMENTS}" ]]; then
         SIGN_ARGS+=(--entitlements "${ENTITLEMENTS}")
     fi

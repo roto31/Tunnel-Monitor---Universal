@@ -37,14 +37,9 @@ struct StatusContentView: View {
             if !model.presentation.issues.isEmpty {
                 issuesSection
             }
-            if model.presentation.isStateStale {
-                staleStateBanner
-            }
-            if let detail = model.presentation.technicalDetail, !detail.isEmpty {
-                technicalSection(detail: detail, steps: model.presentation.recommendedSteps)
-            }
             checksSection
             dedupSection
+            spokePolicySection
             if showActions {
                 actionsSection
             }
@@ -95,11 +90,6 @@ struct StatusContentView: View {
                         .font(.caption)
                         .foregroundStyle(.red)
                 }
-                if let schema = model.presentation.schemaVersionLabel {
-                    Text("Schema v\(schema)")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
             }
             Spacer()
             Text(model.alertState)
@@ -128,39 +118,6 @@ struct StatusContentView: View {
         .tmGlassCard(tint: .yellow)
     }
 
-    private var staleStateBanner: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "clock.badge.exclamationmark")
-                .foregroundStyle(.orange)
-            Text("state.json may be stale — try Force Check or verify launchd.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .tmGlassCard(tint: .orange)
-    }
-
-    @ViewBuilder
-    private func technicalSection(detail: String, steps: [String]) -> some View {
-        DisclosureGroup {
-            Text(detail)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            if !steps.isEmpty {
-                Text("Suggested steps").font(.caption.bold()).padding(.top, 4)
-                ForEach(Array(steps.enumerated()), id: \.offset) { idx, step in
-                    Text("\(idx + 1). \(step)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        } label: {
-            Text("Technical detail")
-                .font(.subheadline.bold())
-        }
-        .tmGlassCard()
-    }
-
     @ViewBuilder
     private var checksSection: some View {
         Group {
@@ -180,6 +137,7 @@ struct StatusContentView: View {
                              ok: s.checks.our_internet.ok,
                              latency: s.checks.our_internet.latency_ms)
                     dnsRow(s.checks.dns)
+                    observedWanRow(s)
                     Text("Failure count: \(s.failure_count)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -214,6 +172,75 @@ struct StatusContentView: View {
                 .lineLimit(2)
             Spacer()
         }
+    }
+
+    @ViewBuilder
+    private func observedWanRow(_ snapshot: Snapshot) -> some View {
+        if let observed = snapshot.remote_wan_observed, !observed.isEmpty {
+            let stale = snapshot.advisories.contains("REMOTE_WAN_IP_STALE")
+                || snapshot.advisories.contains("REMOTE_DDNS_STALE")
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(stale ? Color.yellow : Color.green)
+                    .frame(width: 8, height: 8)
+                Text(stale
+                     ? "Remote WAN observed: \(observed) — update REMOTE_WAN_IP / No-IP"
+                     : "Remote WAN observed: \(observed)")
+                    .font(.caption.monospaced())
+                    .foregroundStyle(stale ? Color.yellow : Color.secondary)
+                    .lineLimit(2)
+                Spacer()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var spokePolicySection: some View {
+        if let block = model.snapshot?.spoke_policy {
+            let trimmed = block.label?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let title = trimmed.isEmpty ? AppBranding.spokePolicySectionTitle : trimmed
+            let status = spokePolicyStatus(block)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).font(.subheadline).bold()
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(status.color)
+                        .frame(width: 8, height: 8)
+                    Text(status.text)
+                        .font(.caption)
+                    Spacer()
+                }
+            }
+            .tmGlassCard(tint: status.color)
+        }
+    }
+
+    private func spokePolicyStatus(_ block: SpokePolicyBlock) -> (text: String, color: Color) {
+        guard block.enabled == true else {
+            return ("Not configured", .gray)
+        }
+        if block.reachable == false {
+            return ("Spoke unreachable", .red)
+        }
+        guard let state = block.state, !state.isEmpty else {
+            return ("Not checked", .gray)
+        }
+        if state == "MISSING" {
+            return ("Not installed on spoke", .gray)
+        }
+        let parts = state.split(separator: ":", maxSplits: 1).map(String.init)
+        if parts.count == 2, let count = Int(parts[0]) {
+            if parts[1] == "UP" {
+                if count == 0 {
+                    return ("Routed via tunnel (\(state))", .green)
+                }
+                return ("Recovering (\(state))", .yellow)
+            }
+            if parts[1] == "DOWN" {
+                return ("BROKEN (\(state))", .red)
+            }
+        }
+        return (state, .gray)
     }
 
     @ViewBuilder
@@ -270,16 +297,12 @@ struct StatusContentView: View {
                     Label("SSH Test", systemImage: "key")
                 }
                 .tmGlassActionButton()
-                Button { runAction { Actions.openExplainInTerminal() } } label: {
-                    Label("Explain", systemImage: "text.book.closed")
+                Button { runAction { Actions.spokeSshTest() } } label: {
+                    Label("Spoke SSH Test", systemImage: "point.3.connected.trianglepath.dotted")
                 }
                 .tmGlassActionButton()
             }
             HStack(spacing: 8) {
-                Button { runAction { Actions.openPreflightInTerminal() } } label: {
-                    Label("Preflight", systemImage: "checklist")
-                }
-                .tmGlassActionButton()
                 Button { runAction { Actions.resetState() } } label: {
                     Label("Reset State", systemImage: "arrow.counterclockwise")
                 }
